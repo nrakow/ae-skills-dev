@@ -28,12 +28,13 @@
 | dbt-ci-cd | 1.1.0 | 2026-03-01 | Added pre-commit hooks, GitLab CI pipeline |
 | data-catalog | 1.1.0 | 2026-03-01 | Added frontmatter schema, Before You Start, Verify Your Work, and If Something Goes Wrong sections |
 | access-control | 1.1.0 | 2026-03-01 | Added frontmatter schema, Before You Start, Verify Your Work, and If Something Goes Wrong sections |
-| pii-handling | 1.1.0 | 2026-03-01 | Fixed Snowflake pseudonymization syntax; added synthetic data, dynamic masking |
+| pii-handling | 1.1.0 | 2026-03-01 | Fixed Snowflake pseudonymization syntax; added synthetic data, dynamic masking; added frontmatter schema, Before You Start, Verify Your Work, and If Something Goes Wrong sections |
 | data-lineage | 1.1.0 | 2026-03-01 | Added frontmatter schema, Before You Start, Verify Your Work, and If Something Goes Wrong sections |
 | activity-schema | 1.1.0 | 2026-03-01 | Added frontmatter schema, Before You Start, Verify Your Work, and If Something Goes Wrong sections |
-| funnel-analysis | 1.0.0 | 2026-02-27 | Initial release |
+| funnel-analysis | 1.1.0 | 2026-03-01 | Added frontmatter schema, Before You Start, Verify Your Work, and If Something Goes Wrong sections |
 | cohort-analysis | 1.1.0 | 2026-03-01 | Added frontmatter schema, Before You Start, Verify Your Work, and If Something Goes Wrong sections |
-| event-modeling | 1.0.0 | 2026-02-27 | Initial release |
+| event-modeling | 1.1.0 | 2026-03-01 | Added frontmatter schema, Before You Start, Verify Your Work, and If Something Goes Wrong sections |
+| reverse-etl | 1.1.0 | 2026-03-01 | Added frontmatter schema, Before You Start, Verify Your Work, and If Something Goes Wrong sections |
 | new-project-setup | 1.0.0 | 2026-03-01 | Initial release — composite workflow skill |
 | new-source-onboarding | 1.0.0 | 2026-03-01 | Initial release — composite workflow skill |
 | new-mart-build | 1.0.0 | 2026-03-01 | Initial release — composite workflow skill |
