@@ -98,7 +98,9 @@ Replace identifiers with a pseudonym that can be reversed with a secret key.
 CREATE OR REPLACE FUNCTION pseudonymize_email(email VARCHAR, secret VARCHAR)
 RETURNS VARCHAR
 AS $$
-    SELECT encode(hmac(email::bytea, secret::bytea, 'sha256'), 'hex')
+    -- sha2_hex is available in all Snowflake editions
+    -- For true HMAC: SYSTEM$HMAC_SHA256(secret, email) requires Enterprise edition
+    SELECT sha2_hex(concat(email, secret), 256)
 $$;
 
 -- In staging model: replace email with pseudonym
@@ -154,6 +156,108 @@ SELECT
     {% endif %}
 FROM {{ source('crm', 'customers') }}
 ```
+
+---
+
+## Synthetic Data for Non-Production Environments
+
+Never copy production PII into dev/staging. Use synthetic data that mirrors the shape and distribution of real data without containing actual personal information.
+
+### Python (Faker library)
+
+```python
+# scripts/generate_synthetic_customers.py
+from faker import Faker
+import csv
+
+fake = Faker()
+Faker.seed(42)  # Reproducible seed
+
+with open('seeds/synthetic_customers.csv', 'w') as f:
+    writer = csv.writer(f)
+    writer.writerow(['customer_id', 'email', 'phone', 'date_of_birth', 'zip_code'])
+    for i in range(10000):
+        writer.writerow([
+            f'cust_{i:06d}',
+            fake.email(),
+            fake.phone_number(),
+            fake.date_of_birth(minimum_age=18, maximum_age=90).isoformat(),
+            fake.zipcode()
+        ])
+```
+
+### Snowflake (built-in randomization)
+
+```sql
+-- Generate synthetic customer records in Snowflake
+SELECT
+    'cust_' || LPAD(seq4()::VARCHAR, 6, '0') as customer_id,
+    RANDSTR(8, RANDOM()) || '@' || RANDSTR(6, RANDOM()) || '.com' as email,
+    '+1-' || UNIFORM(200, 999, RANDOM())::VARCHAR || '-' ||
+             UNIFORM(100, 999, RANDOM())::VARCHAR || '-' ||
+             UNIFORM(1000, 9999, RANDOM())::VARCHAR as phone,
+    DATEADD(day, -UNIFORM(6570, 29200, RANDOM()), CURRENT_DATE()) as date_of_birth
+FROM TABLE(GENERATOR(ROWCOUNT => 10000));
+```
+
+### BigQuery
+
+```sql
+-- BigQuery synthetic data using GENERATE_UUID and RAND()
+SELECT
+    CONCAT('cust_', CAST(ROW_NUMBER() OVER () AS STRING)) as customer_id,
+    CONCAT(
+        SUBSTR(TO_HEX(MD5(CAST(RAND() AS STRING))), 1, 8),
+        '@example.com'
+    ) as email,
+    CAST(FLOOR(RAND() * (29200 - 6570) + 6570) AS INT64) as age_days
+FROM UNNEST(GENERATE_ARRAY(1, 10000)) AS n
+```
+
+**Best practice**: seed synthetic data as a dbt seed (`seeds/`) in dev/staging only. Never commit seeds with real PII.
+
+---
+
+## Warehouse-Native Dynamic Masking (Upgrade Path)
+
+For production environments, prefer warehouse-native masking policies over Jinja `{% if target.name %}` conditionals. Native masking enforces access control at the query layer — even direct warehouse connections are masked.
+
+### Snowflake Dynamic Data Masking
+
+```sql
+-- 1. Create a masking policy
+CREATE OR REPLACE MASKING POLICY mask_email AS (val STRING) RETURNS STRING ->
+    CASE
+        WHEN CURRENT_ROLE() IN ('ANALYST', 'BI_ROLE') THEN val
+        ELSE CONCAT(REPEAT('*', LENGTH(SPLIT_PART(val, '@', 1))), '@', SPLIT_PART(val, '@', 2))
+    END;
+
+-- 2. Apply to column
+ALTER TABLE analytics.staging.stg_customers
+    MODIFY COLUMN email SET MASKING POLICY mask_email;
+
+-- 3. In dbt — apply via post_hook
+{{ config(
+    post_hook=[
+        "alter table {{ this }} modify column email set masking policy analytics.mask_email"
+    ]
+) }}
+```
+
+### BigQuery Policy Tags (Column-Level Security)
+
+```sql
+-- Assign a policy tag to a column (via BigQuery Data Catalog)
+-- 1. Create a taxonomy and policy tag in the console or via API
+-- 2. In dbt YAML, annotate columns (documentation only — enforcement via IAM):
+columns:
+  - name: email
+    description: "Customer email — protected by PII policy tag"
+    meta:
+      bigquery_policy_tag: "projects/my-project/locations/us/taxonomies/123/policyTags/456"
+```
+
+For BigQuery, enforcement is applied via Column-Level Security in the BigQuery console; the `meta` field above serves as documentation.
 
 ---
 

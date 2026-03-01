@@ -1,5 +1,7 @@
 # Guidelines for AI Agents
 
+<!-- This file mirrors CLAUDE.md for Codex/OpenAI agent compatibility. Update both files when making changes. -->
+
 ## Repository Overview
 This repository contains Agent Skills for analytics engineering workflows. Skills cover the full analytics engineering lifecycle: data modeling, transformation, testing, orchestration, governance, and BI.
 

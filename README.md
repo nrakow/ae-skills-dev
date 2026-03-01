@@ -21,7 +21,7 @@ Each skill is a structured prompt that Claude Code can invoke when you ask for h
 1. Clone this repository into your project's `.claude/skills/` directory:
 
    ```bash
-   git clone https://github.com/your-org/analyticsengineering .claude/skills/analyticsengineering
+   git clone https://github.com/nrakow/ae-skills-dev .claude/skills/analyticsengineering
    ```
 
 2. Claude Code will automatically discover skills from `.claude/skills/`.

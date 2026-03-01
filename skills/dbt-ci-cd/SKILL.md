@@ -212,6 +212,112 @@ jobs:
 
 ---
 
+## Pre-commit Hooks
+
+Catch issues before they reach CI. Add `.pre-commit-config.yaml` to your repo root:
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-merge-conflict
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.1.0
+    hooks:
+      - id: sqlfluff-lint
+        args: [--dialect, snowflake]  # or bigquery, spark, ansi
+        files: ^models/.*\.sql$
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [--strict]
+        files: ^(models|snapshots|seeds)/.*\.yml$
+```
+
+Install:
+```bash
+pip install pre-commit
+pre-commit install       # installs git hook
+pre-commit run --all-files  # run against all files once
+```
+
+---
+
+## GitLab CI/CD
+
+Equivalent pipeline for GitLab:
+
+```yaml
+# .gitlab-ci.yml
+stages:
+  - lint
+  - ci
+  - deploy
+
+variables:
+  DBT_USER: "ci_${CI_MERGE_REQUEST_IID}"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+
+.dbt_base:
+  image: python:3.11-slim
+  before_script:
+    - pip install -r requirements.txt
+    - dbt deps
+  only:
+    changes:
+      - models/**/*
+      - macros/**/*
+      - tests/**/*
+      - dbt_project.yml
+      - packages.yml
+
+sqlfluff:
+  extends: .dbt_base
+  stage: lint
+  script:
+    - sqlfluff lint models/ --dialect snowflake
+  allow_failure: true  # warn but don't block
+
+dbt-ci:
+  extends: .dbt_base
+  stage: ci
+  script:
+    - dbt parse --target ci
+    - aws s3 cp s3://my-dbt-artifacts/prod/manifest.json ./prod-artifacts/manifest.json || true
+    - dbt build --select "state:modified+" --defer --state ./prod-artifacts --target ci --fail-fast
+  environment:
+    name: ci
+  only:
+    - merge_requests
+
+dbt-deploy:
+  extends: .dbt_base
+  stage: deploy
+  script:
+    - aws s3 cp s3://my-dbt-artifacts/prod/manifest.json ./prev-artifacts/manifest.json || true
+    - dbt build --select "state:modified+" --defer --state ./prev-artifacts --target prod
+    - aws s3 cp target/manifest.json s3://my-dbt-artifacts/prod/manifest.json
+  environment:
+    name: production
+  only:
+    - main
+  when: on_success
+```
+
+---
+
 ## dbt Cloud CI/CD (Alternative)
 
 If using dbt Cloud, use Slim CI instead of GitHub Actions:

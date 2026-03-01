@@ -253,7 +253,105 @@ dbt run-operation codegen.generate_model_yaml \
   --args '{"model_names": ["fct_orders"]}'
 ```
 
+## 7. dbt Unit Tests (dbt 1.8+)
+
+Unit tests mock model inputs and test your SQL logic in isolation — no warehouse connection needed during `dbt parse`.
+
+```yaml
+# tests/unit/test_fct_orders_revenue.yml  (or inline in models YAML)
+unit_tests:
+  - name: test_net_revenue_calculation
+    model: fct_orders
+    given:
+      - input: ref('stg_orders')
+        rows:
+          - {order_id: 1, unit_price: 100, quantity: 2, discount_amount: 10}
+          - {order_id: 2, unit_price: 50,  quantity: 1, discount_amount: 0}
+    expect:
+      rows:
+        - {order_id: 1, net_revenue: 190}
+        - {order_id: 2, net_revenue: 50}
+```
+
+**When to use unit tests vs data tests:**
+
+| Test type | Purpose | Warehouse needed? |
+|-----------|---------|-----------------|
+| Unit test | Validate SQL logic with fixed inputs | ❌ No |
+| Data test | Validate real data meets constraints | ✅ Yes |
+| Singular test | Complex cross-model assertions | ✅ Yes |
+
+Run unit tests: `dbt test --select fct_orders --select-unit-tests-only`
+
+**Testing macros via unit tests** — pass the compiled output:
+```yaml
+unit_tests:
+  - name: test_mask_email_macro
+    model: stg_customers
+    overrides:
+      macros:
+        mask_email: "CONCAT('***@', SPLIT_PART(email, '@', 2))"
+```
+
+## 8. Custom Generic Tests
+
+Reusable assertions in `tests/generic/`:
+
+```sql
+-- tests/generic/assert_no_future_dates.sql
+{% test assert_no_future_dates(model, column_name) %}
+
+select *
+from {{ model }}
+where {{ column_name }} > current_date
+
+{% endtest %}
+```
+
+Use in YAML like any built-in test:
+```yaml
+columns:
+  - name: shipped_at
+    data_tests:
+      - assert_no_future_dates
+```
+
+## Test Severity Levels
+
+Classify every test with a severity so CI knows what to block:
+
+```yaml
+data_tests:
+  - unique:
+      config:
+        severity: error   # Block deploy — data integrity broken
+  - dbt_utils.accepted_range:
+      min_value: 0
+      config:
+        severity: warn    # Investigate — might be a data issue, not code
+  - elementary.volume_anomalies:
+      config:
+        severity: warn    # Monitor — don't break CI for statistical drift
+```
+
+| Level | Action |
+|-------|--------|
+| `error` | Fail CI, block deploy |
+| `warn` | Log warning, do not fail CI |
+
+Never deploy with `error` tests failing.
+
 ## Testing Best Practices
+
+**Testing pyramid — layer your tests:**
+
+```
+Source   → freshness, schema stability
+Staging  → PK unique/not_null, FK relationships
+Int      → join cardinality (fanout detection)
+Marts    → metric bounds, volume thresholds
+Metrics  → trend stability, anomaly detection
+```
 
 **For every model, minimum test set:**
 ```yaml
@@ -281,7 +379,19 @@ config:
 
 | Tier | Required tests |
 |------|---------------|
+| Sources | Freshness, schema stability |
 | Staging | PK unique/not_null, source freshness |
-| Intermediate | PK unique/not_null |
+| Intermediate | PK unique/not_null, join fanout check |
 | Marts (facts) | PK, FK relationships, accepted_values, ranges, row count |
 | Marts (dims) | PK, accepted_values, completeness |
+| Metrics | Trend anomaly, cross-source reconciliation |
+
+## Incident Response
+
+When tests fail in production:
+1. Freeze deploys until scope is understood
+2. Identify which models, metrics, and dashboards are affected
+3. Notify stakeholders with plain-language impact statement
+4. Patch source data or transform logic (don't just silence the test)
+5. Backfill affected partitions/incremental windows
+6. Add a postmortem test to prevent recurrence

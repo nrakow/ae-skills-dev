@@ -244,6 +244,105 @@ ORDER BY pct_used DESC;
 
 ---
 
+## DuckDB Optimization
+
+DuckDB is columnar and vectorized by default — it's fast out of the box, but a few patterns matter at scale.
+
+```sql
+-- Check database size and table stats
+PRAGMA database_size;
+PRAGMA storage_info('fct_events');
+
+-- EXPLAIN ANALYZE to see actual row counts and execution plan
+EXPLAIN ANALYZE
+SELECT user_id, count(*) FROM fct_events WHERE event_date >= '2024-01-01' GROUP BY 1;
+
+-- Memory limit (important for large dbt runs)
+SET memory_limit = '8GB';
+SET threads = 4;  -- match to available CPU cores
+
+-- Parallel reads from Parquet (extremely fast)
+SELECT * FROM read_parquet('s3://my-bucket/events/*.parquet', hive_partitioning=true)
+WHERE event_date >= '2024-01-01';
+```
+
+**DuckDB-specific tips:**
+- No cluster/partition concept — focus on column projection and filter pushdown
+- Use `COPY` for bulk loads, not `INSERT`
+- Native SQL is faster than Python UDFs for heavy transforms
+
+---
+
+## Snowflake Dynamic Tables
+
+Dynamic Tables replace scheduled tasks + incremental models for near-real-time use cases. They refresh automatically with a configurable lag target.
+
+```sql
+-- Create a Dynamic Table with a 5-minute lag target
+CREATE OR REPLACE DYNAMIC TABLE analytics.marts.fct_orders_live
+    TARGET_LAG = '5 minutes'
+    WAREHOUSE = TRANSFORMING
+AS
+SELECT
+    o.order_id,
+    o.customer_id,
+    c.customer_segment,
+    o.order_amount,
+    o.created_at
+FROM raw.orders o
+JOIN analytics.staging.stg_customers c ON o.customer_id = c.customer_id;
+```
+
+**In dbt** (dbt-snowflake 1.6+):
+
+```sql
+{{ config(
+    materialized='dynamic_table',
+    target_lag='5 minutes',
+    snowflake_warehouse='TRANSFORMING'
+) }}
+```
+
+| | Dynamic Tables | Incremental |
+|---|---|---|
+| Latency | Minutes | Hours (scheduled) |
+| Cost control | Less predictable | Predictable |
+| Complex transforms | Limited | Full dbt support |
+| Late-arriving data | Automatic | Manual lookback |
+
+---
+
+## BigQuery Materialized Views
+
+BigQuery Materialized Views pre-compute and cache aggregation results, refreshing automatically when base tables change.
+
+```sql
+CREATE MATERIALIZED VIEW analytics.marts.mv_daily_revenue
+OPTIONS (enable_refresh = true, refresh_interval_minutes = 60)
+AS
+SELECT
+    DATE(ordered_at) as order_date,
+    customer_segment,
+    SUM(net_revenue) as total_revenue,
+    COUNT(*) as order_count
+FROM analytics.marts.fct_orders
+GROUP BY 1, 2;
+```
+
+In dbt (BigQuery adapter):
+
+```sql
+{{ config(
+    materialized='materialized_view',
+    enable_refresh=true,
+    refresh_interval_minutes=60
+) }}
+```
+
+Use MVs for stable rollup-heavy BI queries. Use incremental models when you need dbt tests, docs, and full DAG lineage.
+
+---
+
 ## dbt Materialization Strategy
 
 ```yaml

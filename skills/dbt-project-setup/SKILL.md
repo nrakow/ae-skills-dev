@@ -58,6 +58,8 @@ my_project/
 ├── tests/                     # Singular tests (complex SQL assertions)
 │   └── assert_orders_positive_revenue.sql
 │
+├── unit_tests/                # dbt unit tests (dbt 1.8+) — mock inputs, test SQL logic
+│
 ├── macros/                    # Jinja macros
 │   ├── generate_schema_name.sql
 │   └── cents_to_dollars.sql
@@ -349,8 +351,8 @@ dbt debug
 # Install packages
 dbt deps
 
-# Run a smoke test
-dbt run --select staging --limit 10
+# Run a smoke test (staging layer only)
+dbt build --select staging
 
 # Check freshness
 dbt source freshness

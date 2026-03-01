@@ -64,6 +64,12 @@ Ask these questions in batches (do not ask one at a time):
 13. Environments? (dev/staging/prod, which CI/CD tool?)
 14. North star metrics? (The 3-5 metrics the business cares most about)
 
+**Batch 5 - Development Workflow:**
+15. Git provider? (GitHub / GitLab / Bitbucket / Azure DevOps)
+16. Data modeling philosophy? (Kimball / One Big Table / Data Vault / Activity Schema / Mixed)
+17. Python models? (Yes — Snowpark / PySpark / BigQuery DataFrames; No)
+18. SQLMesh instead of dbt? (Yes / No)
+
 ## Output Format
 
 Save the completed context to `.claude/data-stack-context.md` using this exact template:
@@ -113,6 +119,12 @@ Save the completed context to `.claude/data-stack-context.md` using this exact t
 - **staging**: CI runs on PR open, schema = ci_<pr_number>
 - **prod**: merges to main trigger deploy, schema = prod_*
 - **CI/CD**: GitHub Actions
+- **Git provider**: GitHub
+
+## Development Workflow
+- **Modeling philosophy**: Kimball star schema (marts layer)
+- **Python models**: No
+- **SQLMesh**: No
 
 ## Team
 - **Size**: Small (3 analytics engineers, 2 analysts)

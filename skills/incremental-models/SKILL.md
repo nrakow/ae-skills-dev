@@ -264,10 +264,83 @@ models:
             count: 1
 ```
 
+## Microbatch Strategy (dbt 1.9+)
+
+`microbatch` is a first-class incremental strategy that processes data in small time-bucketed batches automatically. It replaces manual `is_incremental()` lookback patterns for time-series data.
+
+```sql
+{{ config(
+    materialized='incremental',
+    incremental_strategy='microbatch',
+    event_time='event_timestamp',   -- column that marks when the event occurred
+    begin='2024-01-01',             -- earliest date to process on full refresh
+    batch_size='day',               -- day | month | year
+    lookback=3                      -- reprocess last N batches to catch late arrivals
+) }}
+
+select
+    event_id,
+    user_id,
+    event_type,
+    event_timestamp
+from {{ source('product', 'events') }}
+-- No manual is_incremental() filter needed — dbt injects it per batch
+```
+
+**When microbatch wins over manual `is_incremental()`:**
+- Source data is append-only by day/week/month
+- You want per-batch retry on failure (failed batches re-run automatically)
+- Backfill specific date ranges: `dbt run --select fct_events --event-time-start 2024-06-01 --event-time-end 2024-06-30`
+
+**When to stick with manual `is_incremental()`:**
+- Source has random updates (no reliable `event_time`)
+- Complex merge logic across multiple keys
+- Composite unique keys required
+
+## Deterministic Unique Keys
+
+For merge-based models, unique keys must be **stable and non-nullable**:
+
+| Key type | Status | Why |
+|----------|--------|-----|
+| `event_id` | ✅ Good | Stable, assigned at source |
+| `order_id + line_number` | ✅ Good | Composite, deterministic |
+| `event_timestamp` | ❌ Bad | Timestamps collide; updates break merge |
+| `row_number()` | ❌ Bad | Changes on full refresh |
+| `{{ dbt_utils.generate_surrogate_key([...]) }}` | ✅ Good | Deterministic hash |
+
+## Schema Change Handling
+
+Use `on_schema_change: fail` for production models — silent schema drift corrupts incrementals:
+
+```sql
+{{ config(
+    materialized='incremental',
+    unique_key='event_id',
+    on_schema_change='fail'   -- Require explicit migration, not silent append
+) }}
+```
+
+During planned migrations only: switch to `sync_all_columns`, migrate, then revert to `fail`.
+
+## Backfill Protocol
+
+When reprocessing historical data:
+
+1. **Identify affected partitions** — determine which date range needs reprocessing
+2. **Run scoped full refresh** — for microbatch: `dbt run --select fct_events --event-time-start 2024-01-01 --event-time-end 2024-03-31`; for manual: `dbt run --full-refresh --select fct_events`
+3. **Validate row counts** — compare before/after against source
+4. **Rebuild downstream models** — anything that depends on the backfilled model
+5. **Re-run BI extracts** — dashboards may have cached stale data
+
+Never silently partial-backfill. Always cascade through the DAG.
+
 ## Common Mistakes
 
 - **No lookback window** — misses late-arriving data; always buffer
+- **Timestamp as sole unique key** — timestamps collide; use business keys
 - **`WHERE` on non-indexed column** — full scan defeats the purpose; filter on partitioned/clustered column
 - **Missing `unique_key`** — without it, dbt defaults to `append` and creates duplicates on reruns
 - **`on_schema_change='ignore'`** — new source columns silently disappear from your mart
 - **Not testing after incremental** — row count drops are invisible without monitoring
+- **Partial backfills** — backfilling the source but not downstream marts creates permanent inconsistency

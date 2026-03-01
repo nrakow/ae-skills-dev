@@ -261,6 +261,33 @@ models:
 - **No date spine**: Avoid `generate_series` in live queries; pre-build `dim_dates`
 - **Over-normalized**: Don't create `dim_cities → dim_regions → dim_countries` for 3 rows each
 
+## Common AI Failure Modes
+
+Specific mistakes AI assistants frequently make when generating dimensional models:
+
+### 1. "Kitchen Sink" Tables
+Combining events, users, revenue, and products into a single wide table. Destroys governance and makes grain undefinable. Separate concerns into distinct facts and dimensions.
+
+### 2. Implicit Grain Explosion
+Joining sessions → users → orders without checking cardinality. A single M:M join silently multiplies rows. Always validate with a fanout check before committing:
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(DISTINCT primary_key) AS distinct_keys,
+    COUNT(*) / COUNT(DISTINCT primary_key) AS fanout_ratio
+FROM {{ ref('your_model') }}
+HAVING fanout_ratio > 1.001
+```
+
+### 3. Natural Key Drift
+Source systems reassign IDs over time. Without surrogate keys, metric corruption is silent and irreversible. Always use `dbt_utils.generate_surrogate_key()`.
+
+### 4. `SELECT DISTINCT` to Hide Fanout
+Adding `DISTINCT` to hide a join cardinality bug masks the root cause and produces wrong aggregations. Fix the join logic instead.
+
+### 5. Snapshot Misuse
+Using raw `dbt snapshot` output directly as a dimension. Snapshots are raw history — always build a `dim_*_history.sql` on top with `valid_from`, `valid_to`, `is_current`.
+
 ## Output Checklist
 
 I'll produce:

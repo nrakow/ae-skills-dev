@@ -255,17 +255,29 @@ models:
         data_tests:
           - unique
           - not_null
-      # Each customer should have exactly one current row
+    # Row-level: each validity window must be well-formed
     data_tests:
-      - dbt_utils.expression_is_true:
-          expression: |
-            (select count(*) from {{ model }}
-             where customer_id = customer_id and is_current) = 1
-      # No overlapping validity windows per customer
       - dbt_utils.expression_is_true:
           name: no_overlapping_windows
           expression: "valid_from < valid_to or valid_to is null"
 ```
+
+For the "exactly one current row per customer" check, use a **singular test** (model-level YAML expressions can't express cross-row grouping):
+
+```sql
+-- tests/assert_scd2_one_current_per_customer.sql
+-- Fails if any customer_id has more than one current row
+
+select
+    customer_id,
+    count(*) as current_row_count
+from {{ ref('dim_customers_history') }}
+where is_current
+group by customer_id
+having count(*) > 1
+```
+
+Run it with: `dbt test --select dim_customers_history`
 
 ## Performance Considerations
 
