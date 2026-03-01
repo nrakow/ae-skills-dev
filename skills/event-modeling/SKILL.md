@@ -1,11 +1,35 @@
 ---
 name: event-modeling
-description: "Model business processes as event streams for temporal analytics. Use when designing an event-driven data model, tracking state transitions over time, modeling complex business processes like order lifecycles or subscription changes, or building audit trails. Triggers: 'event modeling', 'state machine', 'event-driven model', 'order lifecycle', 'subscription events', 'state transitions', 'event sourcing', 'process mining'."
+description: "Model business processes as event streams for temporal analytics, audit trails, and process analysis. Use when designing an event-driven data model, tracking state transitions over time, modeling complex business processes like order lifecycles or subscription changes, or building audit trails. Produces fact event stream models, accumulating snapshot models, and event catalog YAML documentation."
+triggers:
+  - "event modeling"
+  - "model state transitions"
+  - "order lifecycle events"
+  - "event sourcing"
+  - "process mining"
+reads_first:
+  - data-stack-context
+cli_tools: []
+produces:
+  - "dbt model SQL (fct_*_events, fct_*_snapshot)"
+  - "schema.yml column documentation"
+  - "event catalog YAML"
+validates_with:
+  - "dbt compile --select tag:event_modeling"
+  - "dbt test --select tag:event_modeling"
+  - "dbt run --select fct_order_lifecycle_events --limit 100"
+  - "dbt run --select fct_subscription_events --limit 100"
 ---
 
 # Event Modeling
 
 I'll help you model business processes as event streams, capturing state transitions over time for audit trails, process analysis, and temporal queries.
+
+## Before You Start
+
+Read these project files before proceeding:
+
+- `.claude/data-stack-context.md` — warehouse type, dbt version, source systems, and business processes to model
 
 ## Check Context First
 
@@ -337,3 +361,34 @@ events:
     triggers: customer_notification
     properties: [order_id, carrier, tracking_number, warehouse_id]
 ```
+
+---
+
+## Verify Your Work
+
+Run these commands after building your event models to confirm correctness:
+
+```bash
+# Compile and validate SQL syntax for all event models
+dbt compile --select tag:event_modeling
+
+# Run data tests (not_null, unique on surrogate keys, accepted_values for event_type)
+dbt test --select tag:event_modeling
+
+# Check that the event stream has no duplicate (order_id, event_type) pairs
+dbt test --select fct_order_lifecycle_events
+
+# Confirm accumulating snapshot row counts match source orders
+dbt test --select fct_order_snapshot
+
+# Spot-check temporal ordering: no event_ts should be before the preceding step
+dbt run --select fct_order_lifecycle_events && dbt test --select fct_order_lifecycle_events
+```
+
+## If Something Goes Wrong
+
+- **Duplicate event rows**: The surrogate key `generate_surrogate_key(['order_id', 'event_type'])` assumes one row per event type per entity. If source data has multiple timestamps for the same event (e.g., two `payment_captured` rows), deduplicate in the staging layer with `qualify row_number() over (partition by order_id, event_type order by event_ts) = 1`.
+- **NULL duration_seconds for first event**: The first event in a sequence has no preceding step, so `duration_seconds` is always NULL for event sequence = 1. This is expected — filter it out in aggregation queries.
+- **Negative duration values**: Happens when source timestamps are out of order (e.g., `shipped_at` recorded before `payment_captured_at`). Add a dbt `expression_is_true` test: `duration_seconds >= 0 or duration_seconds is null`.
+- **Accumulating snapshot not updating**: If using `incremental_strategy='merge'`, confirm the `unique_key` matches the primary key and that the `is_incremental()` filter lookback window is wide enough to capture all recently updated orders.
+- **dbt_utils not installed**: `generate_surrogate_key` requires `dbt_utils`. Add `dbt-labs/dbt_utils` to `packages.yml` and run `dbt deps`.

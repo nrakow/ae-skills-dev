@@ -1,11 +1,42 @@
 ---
 name: entity-resolution
 description: "Deduplicate and resolve entity identity across sources. Use when the same customer appears in multiple systems with different IDs, merging user records from CRM and product database, or building a unified customer identity. Triggers: 'entity resolution', 'deduplication', 'identity stitching', 'merge customer records', 'cross-source customer matching', 'fuzzy matching', 'golden record'."
+triggers:
+  - "entity resolution"
+  - "deduplication"
+  - "match records"
+  - "merge customers"
+  - "identity graph"
+  - "customer 360"
+  - "golden record"
+reads_first:
+  - data-stack-context
+  - staging-layer
+cli_tools:
+  - schema-introspect.js
+  - model-stats.js
+produces:
+  - "entity resolution SQL"
+  - "schema.yml"
+validates_with:
+  - "dbt compile"
+  - "dbt test --select"
 ---
 
 # Entity Resolution
 
 I'll help you identify and merge duplicate or fragmented records across sources to build a unified entity identity (golden record).
+
+## Before You Start
+
+Run these to understand what identifier columns are available and estimate match complexity before choosing a strategy:
+
+```bash
+node tools/clis/schema-introspect.js        # identify email, phone, external ID columns
+node tools/clis/model-stats.js --manifest target/manifest.json  # check table cardinalities
+```
+
+High cardinality (>10M rows) rules out naive cross-join fuzzy matching — use a blocking key or an external tool like Splink instead.
 
 ## Check Context First
 
@@ -315,3 +346,21 @@ For > 10M entity pairs, SQL cross joins become impractical:
 | **Dedupe.io** | Python library | Supervised ML; requires training data |
 | **Snowflake Entity Resolution** | Managed service | Native to Snowflake; GA 2024 |
 | **BigQuery Entity Reconciliation** | Managed service | Requires Knowledge Graph API |
+
+## Verify Your Work
+
+After building the resolved entity model, validate uniqueness of the resolved entity ID and spot-check matched records:
+
+```bash
+dbt compile
+dbt test --select <entity_model>
+```
+
+The `unique` and `not_null` tests on `entity_id` confirm the golden record has no duplicates. Then run a sample query to manually review 20-50 merged record pairs and confirm the match logic is correct before relying on it downstream.
+
+## If Something Goes Wrong
+
+- **Too many false positives** (unrelated records merged): Tighten the match threshold or require 2+ matching signals (e.g., email AND company domain). Adding a blocking key (e.g., same country) reduces spurious cross-cluster merges.
+- **Too many false negatives** (same person not matched): Normalize inputs before matching — lowercase email, strip phone formatting, trim whitespace. Consider adding fuzzy name matching as a secondary signal.
+- **Performance issues on large tables**: Cross-join fuzzy matching is O(n²) and unworkable above ~1M rows. Partition by a blocking key (email domain, zip code) to reduce the candidate space, or switch to Splink/Zingg for probabilistic matching at scale.
+- **Entity IDs change between runs**: The `entity_id` generation is not deterministic. Use `min(source_id)` or `dbt_utils.generate_surrogate_key()` on a stable input — never `row_number()` or auto-increment IDs.

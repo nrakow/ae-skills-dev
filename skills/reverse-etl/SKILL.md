@@ -1,11 +1,37 @@
 ---
 name: reverse-etl
-description: "Set up and manage reverse ETL pipelines that sync warehouse data into operational tools. Use when you need to sync warehouse to Salesforce, HubSpot, Intercom, or ad platforms; configure Census or Hightouch syncs; build an activation layer in dbt; implement warehouse to CRM data flows; score leads or compute customer health scores for operational analytics; or activate warehouse data for personalized marketing. Triggers: 'reverse ETL', 'sync warehouse to Salesforce', 'Census', 'Hightouch', 'activation', 'warehouse to CRM', 'operational analytics', 'lead scoring', 'customer health score', 'activate data'."
+description: "Design and implement reverse ETL pipelines that sync modeled warehouse data into operational tools like Salesforce, HubSpot, Intercom, and ad platforms. Use when syncing warehouse data to a CRM or marketing tool, configuring Census or Hightouch syncs, building a dbt activation layer, computing lead scores or customer health scores, or activating warehouse data for personalized marketing. Produces dbt activation model SQL, companion schema.yml, Census/Hightouch sync configuration, and a governance PR checklist."
+triggers:
+  - "sync warehouse data to Salesforce"
+  - "reverse ETL"
+  - "set up Census or Hightouch"
+  - "build an activation layer"
+  - "lead scoring from the warehouse"
+reads_first:
+  - data-stack-context
+cli_tools: []
+produces:
+  - "dbt model SQL (act_<destination>__<object>.sql)"
+  - "schema.yml with sync metadata and data tests"
+  - "Census or Hightouch sync configuration YAML"
+  - "Snowflake least-privilege role SQL"
+  - "reverse ETL governance PR checklist"
+validates_with:
+  - "dbt compile --select tag:activation"
+  - "dbt test --select tag:activation"
+  - "dbt run --select tag:activation"
+  - "dbt test --select act_salesforce__lead_scores --select not_null_email"
 ---
 
 # Reverse ETL
 
 I'll help you design and implement a reverse ETL pipeline that sends cleaned, modeled warehouse data back into operational tools — Salesforce, HubSpot, Intercom, ad platforms, and more.
+
+## Before You Start
+
+Read these project files before proceeding:
+
+- `.claude/data-stack-context.md` — warehouse type (Snowflake/BigQuery/Databricks/Redshift), dbt version, reverse ETL tool (Census/Hightouch/none), and destination systems (Salesforce/HubSpot/Intercom/ad platforms)
 
 ## Check Context First
 
@@ -498,3 +524,31 @@ create table ops.reverse_etl_sync_log (
     ingested_at        timestamp default current_timestamp()
 );
 ```
+
+---
+
+## Verify Your Work
+
+Run these commands after building activation models and configuring syncs:
+
+```bash
+# Compile all activation models to catch SQL errors before syncing
+dbt compile --select tag:activation
+
+# Run data tests — especially not_null and unique on the upsert key column
+dbt test --select tag:activation
+
+# Build all activation models to confirm they materialize without errors
+dbt run --select tag:activation
+
+# Confirm the upsert key (email) is never null in the lead scores model
+dbt test --select act_salesforce__lead_scores
+```
+
+## If Something Goes Wrong
+
+- **Sync creates duplicate records in Salesforce**: The upsert key column (`email`) is NULL for some rows, or the field mapped in Census/Hightouch does not match the Salesforce external ID field exactly. Confirm the `not_null` and `unique` dbt tests pass on the upsert key before enabling the sync.
+- **Census or Hightouch reports 0 records synced**: The activation model built successfully but returned 0 rows. Check that the upstream `dim_leads` or `fct_product_events` models are populated and that the `where email is not null` filter is not too restrictive. Add an Elementary volume anomaly test to catch this automatically.
+- **Field mapping errors on sync run**: A column was renamed or dropped in the dbt activation model without updating the Census/Hightouch field mapping. Schema changes in activation models must be coordinated with sync configuration updates in the same deploy.
+- **Sync runs before dbt finishes**: The sync schedule is set to run at the same time as (or before) the dbt run completes. Add a 30-minute buffer: if dbt runs at `0 * * * *`, schedule the sync at `30 * * * *`. Alternatively, trigger the sync from your orchestrator (Airflow/Dagster) as a downstream task of the dbt run.
+- **PII flowing to Salesforce without consent**: An `act_` model is selecting `*` from a mart instead of an explicit column allowlist. Immediately pause the sync, audit which fields were transmitted, notify the privacy team, and restrict the model to only approved columns.

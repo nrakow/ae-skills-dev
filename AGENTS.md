@@ -23,6 +23,7 @@ All skills MUST check for `.claude/data-stack-context.md` before asking diagnost
 - Compliance requirements (GDPR / CCPA / HIPAA / none)
 
 If this file exists, read it before asking the user questions. If it doesn't exist, suggest running the `data-stack-context` skill first.
+**Staleness check**: if the context file exists, compare the documented warehouse/dbt version against what you find in `dbt_project.yml` and `packages.yml`. If they diverge (e.g., context says dbt 1.7 but packages.yml shows dbt-core 1.9), flag this and offer to update the context file before proceeding.
 
 ## Skill Requirements
 
@@ -32,10 +33,31 @@ If this file exists, read it before asking the user questions. If it doesn't exi
 - Examples: `dbt-project-setup`, `slowly-changing-dimensions`, `funnel-analysis`
 
 ### SKILL.md Structure
+
+Every skill uses YAML frontmatter with the following fields:
+
+```yaml
 ---
 name: skill-name        # 1-64 chars, must match directory name
 description: "..."      # 1-1024 chars, include trigger phrases and use cases
+triggers:               # phrases an agent should recognize to invoke this skill
+  - "trigger phrase one"
+  - "trigger phrase two"
+reads_first:            # other skills or context files to load before this skill
+  - data-stack-context
+  - other-skill-name
+cli_tools:              # CLI tools from tools/clis/ this skill uses
+  - tool-name.js
+produces:               # artifacts this skill outputs
+  - "dbt model SQL"
+  - "schema.yml"
+validates_with:         # commands to run after the skill completes
+  - "dbt compile"
+  - "dbt test --select <model>"
 ---
+```
+
+`name` and `description` are required. All other fields are optional but strongly recommended for agent routing and context loading.
 
 ### Content Guidelines
 - Max 500 lines (move detailed SQL patterns to `references/` subdirectory)
@@ -66,6 +88,28 @@ Skills that design or refactor models should output lineage-compatible artifacts
 - dbt YAML with descriptions and column-level docs
 - Source definitions with freshness checks
 - OpenLineage-compatible event annotations where relevant
+
+## Skill Routing
+
+When a user request matches a skill's `triggers`, load that skill. Load skills listed in `reads_first` before executing the target skill. Never ask the user diagnostic questions that are already answered in `.claude/data-stack-context.md`.
+
+### Workflow Skills
+
+For multi-step workflows, use these composite skills that sequence individual skills:
+
+| User Intent | Workflow Skill |
+|---|---|
+| Start a brand new analytics project | `new-project-setup` |
+| Onboard a new data source | `new-source-onboarding` |
+| Build a new mart or reporting model | `new-mart-build` |
+| Investigate a data incident or alert | `data-incident-response` |
+
+### Skill Completion
+
+After every skill execution:
+1. Run the commands listed in `validates_with` to confirm the output compiles and tests pass
+2. Reference `cli_tools` to surface available utilities the user can run
+3. If validation fails, consult the skill's "If Something Goes Wrong" section before asking the user
 
 ## Update Checking
 - Agents should fetch VERSIONS.md once per session on first skill use

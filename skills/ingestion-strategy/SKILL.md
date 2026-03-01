@@ -1,6 +1,24 @@
 ---
 name: ingestion-strategy
-description: "Choose and configure ingestion tools (Fivetran, Airbyte, custom). Use when selecting an ingestion approach for a new data source, reviewing ELT vs ETL tradeoffs, configuring sync schedules, or deciding between managed and self-hosted ingestion. Triggers: 'ingestion strategy', 'Fivetran vs Airbyte', 'how to load data', 'ELT setup', 'connect data source', 'data ingestion'."
+description: "Design and implement a data ingestion strategy for moving data from sources into the warehouse using tools like Fivetran, Airbyte, or custom pipelines. Use when selecting an ingestion tool, setting up a new connector, or evaluating ingestion approaches. Triggers: 'ingest data', 'data ingestion', 'load data', 'Fivetran', 'Airbyte', 'connector setup', 'ELT pipeline', 'data loading', 'source connector'."
+triggers:
+  - "ingest data"
+  - "data ingestion"
+  - "load data"
+  - "Fivetran"
+  - "Airbyte"
+  - "connector setup"
+  - "ELT pipeline"
+reads_first:
+  - data-stack-context
+cli_tools:
+  - source-freshness.js
+produces:
+  - "ingestion tool configuration"
+  - "dbt sources.yml"
+validates_with:
+  - "dbt source freshness"
+  - "node tools/clis/source-freshness.js --results target/sources.json"
 ---
 
 # Ingestion Strategy
@@ -10,6 +28,13 @@ I'll help you choose the right ingestion tool and configure it correctly for you
 ## Check Context First
 
 Read `.claude/data-stack-context.md`. Key inputs: warehouse type, current ingestion tools, budget constraints.
+
+## Before You Start
+
+- Run `node tools/clis/source-freshness.js` to check current source freshness status before adding new sources.
+- Read the relevant integration guide in `tools/integrations/` for your tool (e.g., `fivetran.md` or `airbyte.md`).
+- Check `models/staging/` to see if a `sources.yml` already exists for the target source — avoid duplicating source definitions.
+- Confirm the warehouse destination credentials and schema naming convention before configuring a new connector.
 
 ## ELT vs ETL
 
@@ -296,3 +321,15 @@ WHERE _fivetran_synced >= current_date - 7
 GROUP BY 1
 ORDER BY 1 DESC
 ```
+
+## Verify Your Work
+
+- After configuring ingestion, run `dbt source freshness` to confirm the source is reporting as fresh.
+- Verify `loaded_at_field` is populated with recent timestamps by querying the raw table directly.
+- Run `node tools/clis/source-freshness.js` again after the first connector sync to confirm the source appears as fresh.
+
+## If Something Goes Wrong
+
+- **Source shows as stale**: Check the connector sync schedule in Fivetran/Airbyte; verify `loaded_at_field` in `sources.yml` matches the actual column name populated by the connector (e.g., `_fivetran_synced` vs `_airbyte_extracted_at`).
+- **Schema drift**: Enable schema change alerts in Fivetran or Airbyte — these notify you when upstream columns are added, removed, or renamed.
+- **Incremental load missing rows**: Check the connector's cursor field configuration — the cursor must point to a column that monotonically increases with new records (e.g., `updated_at`, not `created_at`).

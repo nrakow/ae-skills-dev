@@ -1,11 +1,37 @@
 ---
 name: pii-handling
-description: "Identify, classify, and protect PII in accordance with GDPR, CCPA, and HIPAA. Use when auditing data for PII exposure, implementing data masking, setting up retention policies, handling data deletion requests, or preparing for a compliance audit. Triggers: 'PII', 'GDPR', 'CCPA', 'HIPAA', 'data privacy', 'personal data', 'mask PII', 'data deletion', 'right to erasure', 'compliance'."
+description: "Identify, classify, and protect personally identifiable information in compliance with GDPR, CCPA, and HIPAA. Use when auditing data for PII exposure, implementing data masking or pseudonymization, setting up retention policies, handling data deletion or DSAR requests, or preparing for a compliance audit. Produces dbt masking macros, schema.yml PII tags, dynamic masking policy SQL, and a PII audit checklist."
+triggers:
+  - "handle PII in my warehouse"
+  - "GDPR compliance"
+  - "mask personal data"
+  - "data deletion right to erasure"
+  - "PII audit"
+reads_first:
+  - data-stack-context
+cli_tools: []
+produces:
+  - "dbt masking macros (macros/mask_pii.sql)"
+  - "schema.yml PII column tags and meta"
+  - "Snowflake dynamic masking policy SQL"
+  - "BigQuery policy tag configuration"
+  - "PII audit checklist"
+validates_with:
+  - "dbt compile --select tag:pii"
+  - "dbt test --select tag:pii"
+  - "dbt run --select tag:pii --target dev"
+  - "dbt run --select stg_customers --target dev"
 ---
 
 # PII Handling
 
 I'll help you identify, classify, and protect personal data in your analytics stack in compliance with GDPR, CCPA, and HIPAA.
+
+## Before You Start
+
+Read these project files before proceeding:
+
+- `.claude/data-stack-context.md` — compliance requirements (GDPR/CCPA/HIPAA), warehouse type, and current PII controls
 
 ## Check Context First
 
@@ -376,3 +402,31 @@ ALTER TABLE clinical_data.patients
 - [ ] Non-prod data confirmed to use masked/synthetic data
 - [ ] Audit log enabled for all PII table access
 - [ ] Privacy policy updated to reflect actual data usage
+
+---
+
+## Verify Your Work
+
+Run these commands after applying PII controls to confirm they are working correctly:
+
+```bash
+# Compile all PII-tagged models to catch masking macro errors
+dbt compile --select tag:pii
+
+# Run data tests on PII models (not_null on pseudonym columns, no raw PII in dev)
+dbt test --select tag:pii
+
+# Build PII staging models against dev target — confirm masking is applied
+dbt run --select tag:pii --target dev
+
+# Spot-check that email column in dev contains masked values, not real addresses
+dbt run --select stg_customers --target dev
+```
+
+## If Something Goes Wrong
+
+- **Masking macro produces NULL instead of masked value**: The `REPEAT` or `SPLIT_PART` function may not be available in your warehouse. Check dialect compatibility — BigQuery uses `REPEAT` and `SPLIT` (not `SPLIT_PART`); Redshift uses `SPLIT_PART` but not `REPEAT` (use `LPAD` instead).
+- **Snowflake dynamic masking policy not applying**: Confirm the role executing the `ALTER TABLE` statement has the `APPLY MASKING POLICY` privilege. The masking policy must exist in the same database or be granted cross-database access.
+- **dbt `{% if target.name == 'prod' %}` applying masking in prod instead of dev**: The logic is inverted — masking should apply in non-prod targets. Verify the condition: `{% if target.name != 'prod' %}` masks; `{% else %}` returns raw values for authorized prod roles.
+- **DSAR deletion not propagating through dbt incremental models**: Incremental models only process new/updated rows and will not remove deleted rows from the model output. Run `dbt run --full-refresh --select tag:pii` after any hard delete to rebuild the models from scratch.
+- **BigQuery policy tags not enforcing access control**: Policy tags in BigQuery require enabling the Data Catalog Fine-Grained Reader IAM role. Tags in dbt YAML `meta` fields are documentation only — enforcement requires separate IAM configuration in the BigQuery console.

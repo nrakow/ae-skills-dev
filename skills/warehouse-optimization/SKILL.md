@@ -1,6 +1,26 @@
 ---
 name: warehouse-optimization
-description: "Optimize warehouse costs, query performance, and resource utilization. Use when query costs are too high, dashboards are slow, warehouse bills are growing, or planning capacity for a new use case. Triggers: 'warehouse optimization', 'reduce costs', 'query performance', 'slow queries', 'warehouse cost', 'clustering', 'partitioning', 'query profiling'."
+description: "Optimize warehouse performance and cost through clustering, partitioning, materialization strategies, and query tuning. Use when queries are slow, compute costs are high, or a model needs to be optimized for production scale. Triggers: 'optimize warehouse', 'query performance', 'slow queries', 'clustering', 'partitioning', 'cost optimization', 'warehouse cost', 'query tuning', 'performance tuning'."
+triggers:
+  - "optimize warehouse"
+  - "query performance"
+  - "slow queries"
+  - "clustering"
+  - "partitioning"
+  - "cost optimization"
+  - "performance tuning"
+reads_first:
+  - data-stack-context
+cli_tools:
+  - cost-estimate.js
+  - model-stats.js
+produces:
+  - "optimization recommendations"
+  - "ALTER TABLE or cluster_by config SQL"
+  - "updated dbt model config"
+validates_with:
+  - "node tools/clis/cost-estimate.js --help"
+  - "node tools/clis/model-stats.js --manifest target/manifest.json"
 ---
 
 # Warehouse Optimization
@@ -10,6 +30,15 @@ I'll help you reduce costs and improve query performance through appropriate clu
 ## Check Context First
 
 Read `.claude/data-stack-context.md`. Key inputs: warehouse type, data volume, cost constraints, slowest queries.
+
+Before optimizing, run `node tools/clis/model-stats.js --manifest target/manifest.json` to see row counts and materialization types, and `node tools/clis/cost-estimate.js --help` to estimate the cost impact of changes.
+
+## Before You Start
+
+- Run `node tools/clis/cost-estimate.js --help` to identify the most expensive queries before making any changes.
+- Run `node tools/clis/model-stats.js --manifest target/manifest.json` to find the largest tables by row count and bytes.
+- Read the warehouse-specific integration guide in `tools/integrations/` for your warehouse type.
+- Record baseline query execution times and costs before optimizing so you can measure improvement.
 
 ## Diagnostic First: Find the Expensive Queries
 
@@ -388,3 +417,15 @@ TRIGGERS
 
 ALTER WAREHOUSE TRANSFORMING SET RESOURCE_MONITOR = daily_budget;
 ```
+
+## Verify Your Work
+
+- Re-run `node tools/clis/cost-estimate.js --help` after applying optimizations to measure improvement against the baseline.
+- Re-run `node tools/clis/model-stats.js --manifest target/manifest.json` to confirm table sizes and scan efficiency improved.
+- For Snowflake: check `partitions_scanned / partitions_total` in query history — good clustering should bring this below 0.2.
+
+## If Something Goes Wrong
+
+- **Clustering not reducing scan cost**: Verify the `WHERE` clause in expensive queries actually filters on the clustered column — clustering only helps when the filter column matches the cluster key.
+- **Partition pruning not working**: Check that the filter is on the raw partition column, not a computed value (e.g., `WHERE event_date >= '2024-01-01'` works; `WHERE DATE(event_timestamp) >= '2024-01-01'` may not prune).
+- **Cost increased after change**: A view may have been converted to a table — check the model's `materialized` config; tables incur storage costs and rebuild costs that views avoid.

@@ -1,11 +1,39 @@
 ---
 name: metrics-layer
 description: "Define semantic metrics with dbt Semantic Layer, MetricFlow, or Cube. Use when you need a single source of truth for metric definitions, want metrics available across BI tools, or are standardizing KPI calculations across teams. Triggers: 'metrics layer', 'dbt metrics', 'MetricFlow', 'Cube metrics', 'semantic layer', 'metric definitions', 'single source of truth metrics'."
+triggers:
+  - "metrics layer"
+  - "semantic layer"
+  - "dbt metrics"
+  - "MetricFlow"
+  - "define metrics"
+  - "business metrics dbt"
+reads_first:
+  - data-stack-context
+  - marts-design
+cli_tools:
+  - manifest-parse.js
+produces:
+  - "semantic_models.yml"
+  - "metrics.yml"
+validates_with:
+  - "dbt parse"
+  - "mf validate"
 ---
 
 # Metrics Layer
 
 I'll help you define a semantic metrics layer so that KPIs are calculated consistently everywhere — in SQL, BI tools, and APIs.
+
+## Before You Start
+
+Run manifest-parse to see which mart models are available to reference in semantic_models:
+
+```bash
+node tools/clis/manifest-parse.js --manifest target/manifest.json
+```
+
+Also read existing `metrics.yml` if present to avoid duplicating metric names. Confirm dbt version >= 1.6 — MetricFlow is not available in earlier versions and the legacy `dbt metrics` syntax is required instead.
 
 ## Check Context First
 
@@ -298,3 +326,21 @@ Document every metric with the same structure so there's no ambiguity:
 **Last updated**: 2024-01-15
 **Slack channel for questions**: #data-metrics
 ```
+
+## Verify Your Work
+
+After writing `semantic_models.yml` and `metrics.yml`, validate YAML syntax and then test query compilation:
+
+```bash
+dbt parse
+mf validate
+```
+
+`dbt parse` catches YAML schema errors. `mf validate` (when MetricFlow CLI is installed) confirms metrics can be queried. If `mf` is not available, use `dbt sl query --metrics <metric_name>` via dbt Cloud.
+
+## If Something Goes Wrong
+
+- **Metric not found in query**: The metric name in the query doesn't match the `name:` field in `metrics.yml`. Check for typos and confirm the semantic_model name matches what the metric references.
+- **Dimension not available**: A group-by dimension is not recognized. The dimension must be declared in the `dimensions` or `entities` block of the semantic_model — add it there and re-run `dbt parse`.
+- **dbt version too old**: MetricFlow semantic layer requires dbt >= 1.6. For older projects, use the legacy `metrics:` YAML syntax (dbt 1.3-1.5) or upgrade dbt. Check `dbt_project.yml` for the `require-dbt-version` field.
+- **mf validate fails with connection error**: MetricFlow needs a live warehouse connection to validate. Confirm your profile target is set and the warehouse is accessible.

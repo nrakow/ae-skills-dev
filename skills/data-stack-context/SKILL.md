@@ -1,11 +1,29 @@
 ---
 name: data-stack-context
-description: Build a foundational data stack context document that captures warehouse, transformation tools, orchestrator, BI layer, team maturity, and compliance requirements. Use this first before other analytics engineering skills to avoid repetitive setup questions.
+description: "Capture and store the user's analytics stack configuration in .claude/data-stack-context.md so all other skills work without repetitive questions. Run this first when starting a new project or workspace. Triggers: 'set up context', 'configure my stack', 'initialize analytics engineering', 'update my stack config'."
+triggers:
+  - "set up context"
+  - "configure my stack"
+  - "initialize"
+  - "update stack config"
+reads_first: []
+cli_tools: []
+produces:
+  - ".claude/data-stack-context.md"
+validates_with: []
 ---
 
 # Data Stack Context
 
 I help you create and maintain a foundational context document for your data stack so every other analytics engineering skill can work without asking redundant setup questions.
+
+## Before You Start
+
+Scan the project root for these files — they auto-populate the draft and reduce questions:
+- `dbt_project.yml` — project name, version, model paths, adapter hints
+- `profiles.yml` — warehouse type, target names
+- `packages.yml` — dbt packages in use
+- `.env.example` — environment variable names (reveals credential patterns without exposing values)
 
 ## Check for Existing Context
 
@@ -15,8 +33,12 @@ First, check if `.claude/data-stack-context.md` already exists:
 Does `.claude/data-stack-context.md` exist in this project?
 ```
 
-- **If yes**: Read the file and present a summary. Ask: "Would you like to update any sections, or is this still accurate?"
+- **If yes**: Read the file and present a summary. Then check for staleness: compare the `dbt_version` value in the context file against the version in `dbt_project.yml` (if present). If they differ, flag it — "The context file says dbt X.Y but dbt_project.yml shows Z.W — would you like to update the context?" — and ask before proceeding. Then ask: "Would you like to update any sections, or is this still accurate?"
 - **If no**: Proceed to draft or build the context document.
+
+### Staleness Check
+
+**If the context file exists**, also compare the documented dbt version and warehouse against what is found in `dbt_project.yml`, `packages.yml`, and `profiles.yml`. If they diverge (e.g., context says BigQuery but `profiles.yml` shows Snowflake, or context says dbt 1.7 but packages show dbt-core>=1.9), surface the mismatch and offer to update the relevant sections before proceeding.
 
 ## Two Paths to Build Context
 
@@ -176,3 +198,13 @@ Read .claude/data-stack-context.md to understand the current data stack before p
 ```
 
 If the file does not exist, those skills will invoke this skill first.
+
+## Verify Your Work
+
+No dbt commands are needed to verify this skill. Confirm the file was written by checking that `.claude/data-stack-context.md` exists at the project root and review these key fields: `Warehouse.Platform`, `Transformation.Version`, `Compliance`, and `Key Sources`. Each section should have a non-empty value — empty fields indicate the auto-draft failed to read the project files and Path B (conversational build) should be used to fill the gaps.
+
+## If Something Goes Wrong
+
+- **Context file not found by other skills**: The file must be at `.claude/data-stack-context.md` exactly. Re-run this skill and confirm the `.claude/` directory exists at the project root — not inside `models/` or `.dbt/`.
+- **Stale warehouse or dbt version**: Compare the `Warehouse.Platform` and `Transformation.Version` fields in the context file against `profiles.yml` and `packages.yml`. If they diverge, re-run and choose "update" when prompted; see the Staleness Check section above.
+- **Missing compliance fields**: If `Compliance` section is empty after auto-draft, use Path B Batch 4 to fill it — missing compliance info causes other skills (marts-design, staging-layer) to skip PII masking recommendations.

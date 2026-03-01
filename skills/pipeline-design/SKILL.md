@@ -1,6 +1,25 @@
 ---
 name: pipeline-design
-description: "Design robust data pipelines with appropriate patterns, dependencies, and error handling. Use when planning a new data pipeline, choosing between orchestration tools, designing retry and alerting strategies, or reviewing an existing pipeline architecture. Triggers: 'pipeline design', 'data pipeline', 'orchestration design', 'pipeline architecture', 'DAG design', 'pipeline dependencies'."
+description: "Design end-to-end data pipeline architecture including orchestration patterns, dependency management, and failure handling. Use when planning a new data pipeline, choosing between orchestration tools, or redesigning an existing pipeline for reliability. Triggers: 'pipeline design', 'data pipeline', 'orchestration design', 'DAG design', 'pipeline architecture', 'airflow DAG', 'dagster asset', 'pipeline reliability'."
+triggers:
+  - "pipeline design"
+  - "data pipeline"
+  - "orchestration design"
+  - "DAG design"
+  - "pipeline architecture"
+  - "pipeline reliability"
+reads_first:
+  - data-stack-context
+  - ingestion-strategy
+cli_tools:
+  - lineage-export.js
+produces:
+  - "pipeline architecture diagram"
+  - "orchestrator DAG definition"
+  - "dbt job configuration"
+validates_with:
+  - "dbt parse"
+  - "node tools/clis/lineage-export.js --manifest target/manifest.json --format dot"
 ---
 
 # Pipeline Design
@@ -10,6 +29,13 @@ I'll help you design data pipelines that are reliable, observable, and cost-effi
 ## Check Context First
 
 Read `.claude/data-stack-context.md`. Key inputs: orchestrator (Airflow/Dagster/Prefect), warehouse, team maturity.
+
+## Before You Start
+
+- Run `node tools/clis/lineage-export.js --manifest target/manifest.json --format dot` to visualize the current model DAG before designing pipeline dependencies.
+- Read the orchestrator integration guide in `tools/integrations/` for your specific tool (e.g., `airflow.md`, `dagster.md`, `prefect.md`).
+- Confirm `target/manifest.json` exists — run `dbt compile` first if it doesn't.
+- Review the existing DAG or job definitions if any are already in the repo before designing a new one.
 
 ## Pipeline Architecture Overview
 
@@ -244,3 +270,15 @@ schedules = {
 - [ ] Cluster/partition tables accessed by date filters
 - [ ] Use `dbt build --select state:modified+` in CI (not full rebuild)
 - [ ] Archive historical raw data to cheaper storage after 90 days
+
+## Verify Your Work
+
+- For Airflow/Dagster/Prefect: run `dbt parse` to validate the model graph is cycle-free before coding the DAG.
+- Draw the pipeline topology and verify it matches the dbt lineage graph exported by `lineage-export.js`.
+- For Airflow specifically: run `airflow dags list` and `airflow tasks list <dag_id>` to confirm the DAG parses correctly.
+
+## If Something Goes Wrong
+
+- **Circular dependency in DAG**: Run `dbt ls` — if dbt raises a cycle error, fix the model graph first; dbt cycles will cause orchestrator cycles.
+- **Task fails silently**: Add explicit failure callbacks (`on_failure_callback` in Airflow, `failure_hook` in Dagster) so failures surface to alerting.
+- **Resource contention**: Add concurrency limits per warehouse tier — avoid running heavy dbt builds and BI queries on the same warehouse simultaneously.

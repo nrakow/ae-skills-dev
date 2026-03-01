@@ -1,11 +1,36 @@
 ---
 name: kpi-framework
-description: "Define, document, and socialize KPIs across your organization. Use when establishing metric definitions, building a metrics dictionary, aligning teams on KPI calculations, or running a north-star metric workshop. Triggers: 'KPI framework', 'define metrics', 'metrics dictionary', 'north star metric', 'metric definition', 'KPI alignment', 'what is our revenue metric'."
+description: "Define, document, and socialize KPIs across your organization, from individual metric definitions to a full metrics hierarchy. Use when establishing metric definitions, building a metrics dictionary, aligning teams on KPI calculations, or running a north-star metric workshop. Produces a metrics dictionary, KPI hierarchy documentation, and dbt SQL implementations for core metrics."
+triggers:
+  - "KPI framework"
+  - "define our metrics"
+  - "metrics dictionary"
+  - "north star metric workshop"
+  - "what is our revenue metric"
+reads_first:
+  - data-stack-context
+cli_tools: []
+produces:
+  - "dbt model SQL (fct_subscriptions_monthly, fct_mrr_movements)"
+  - "metrics dictionary markdown"
+  - "KPI hierarchy documentation"
+  - "schema.yml column documentation"
+validates_with:
+  - "dbt compile --select tag:kpi"
+  - "dbt test --select tag:kpi"
+  - "dbt run --select fct_subscriptions_monthly"
+  - "dbt docs generate"
 ---
 
 # KPI Framework
 
 I'll help you define, document, and align your organization on KPIs — from individual metric definitions to a full metrics hierarchy.
+
+## Before You Start
+
+Read these project files before proceeding:
+
+- `.claude/data-stack-context.md` — north star metrics, team maturity, BI tool, and compliance requirements
 
 ## Check Context First
 
@@ -256,3 +281,31 @@ After defining KPIs:
 | Conflicting definitions | Sales says ARR = $5M, Finance says $4.8M | One source of truth in dbt |
 | No denominator | "Revenue up $100k" — good? Relative to what? | Always show growth rate + absolute |
 | Metric FOMO | Tracking everything because you can | Each metric must drive a decision |
+
+---
+
+## Verify Your Work
+
+Run these commands after building your KPI models to confirm correctness:
+
+```bash
+# Compile all KPI models to catch SQL syntax errors early
+dbt compile --select tag:kpi
+
+# Run all data tests on KPI models (not_null, unique, accepted_values)
+dbt test --select tag:kpi
+
+# Build MRR model and confirm row count equals months × active subscriptions
+dbt run --select fct_subscriptions_monthly
+
+# Generate dbt docs to verify metric descriptions appear correctly
+dbt docs generate
+```
+
+## If Something Goes Wrong
+
+- **MRR double-counting subscriptions**: If a subscription spans multiple billing intervals in the same month (e.g., upgraded mid-month), the cross-join with the month spine may produce duplicate rows. Add a `unique` test on `(reporting_month, subscription_id)` and deduplicate in the subscription staging model.
+- **date_spine generates no rows**: Confirm `dbt_utils` is installed (`dbt deps`) and the `start_date` is earlier than the earliest subscription. An empty spine produces an empty model with no errors.
+- **ARR ≠ MRR × 12 for annual plans**: Annual subscriptions are already normalized to monthly in `mrr_usd`, so `arr_usd = sum(mrr_usd) * 12` is correct. If Finance reports a different ARR, check whether they are counting total contract value rather than normalized monthly revenue.
+- **Metric definitions drift from dbt models**: When the SQL in a dbt model changes, the markdown definition in the metrics dictionary can become stale. Establish a change process: any PR touching a KPI model must include an update to the corresponding dictionary entry.
+- **`last_day()` function not available**: BigQuery uses `LAST_DAY(date, MONTH)`; Redshift uses `LAST_DAY(date)`; Snowflake uses `LAST_DAY(date)`. Adjust the function call to match your warehouse dialect.

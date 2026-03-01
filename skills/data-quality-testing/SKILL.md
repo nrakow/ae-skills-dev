@@ -1,6 +1,25 @@
 ---
 name: data-quality-testing
-description: "Write dbt tests, custom SQL assertions, and schema validations for data quality. Use when adding tests to a dbt project, writing custom data quality checks, setting up test coverage for a new model, or auditing test coverage gaps. Triggers: 'dbt tests', 'data quality tests', 'add tests to model', 'schema tests', 'SQL assertions', 'test coverage', 'write a test for'."
+description: "Write comprehensive dbt tests including schema tests, custom SQL tests, unit tests, and Elementary anomaly tests to ensure data quality. Use when adding test coverage to existing models, auditing test gaps, or setting up a testing strategy from scratch. Triggers: 'add tests', 'write tests', 'test coverage', 'data quality', 'dbt tests', 'schema tests', 'test my models', 'data testing strategy'."
+triggers:
+  - "add tests"
+  - "write tests"
+  - "test coverage"
+  - "data quality"
+  - "dbt tests"
+  - "test my models"
+reads_first:
+  - data-stack-context
+cli_tools:
+  - manifest-coverage.js
+  - test-results.js
+produces:
+  - "schema.yml test definitions"
+  - "tests/singular/ SQL files"
+validates_with:
+  - "dbt test"
+  - "dbt test --store-failures"
+  - "node tools/clis/manifest-coverage.js --manifest target/manifest.json"
 ---
 
 # Data Quality Testing
@@ -10,6 +29,13 @@ I'll help you write comprehensive dbt tests — from basic schema tests to compl
 ## Check Context First
 
 Read `.claude/data-stack-context.md`. Key inputs: dbt version, packages installed (dbt_utils, Elementary), warehouse type.
+
+## Before You Start
+
+- Run `node tools/clis/manifest-coverage.js --manifest target/manifest.json` first to identify which models have no tests — start with those.
+- Read existing `schema.yml` files to understand current test coverage before adding more.
+- Check `packages.yml` to confirm `dbt_utils` and `elementary-data/elementary` are installed.
+- Confirm your dbt version supports `data_tests:` key (dbt 1.8+) vs `tests:` (older versions).
 
 ## Testing Hierarchy
 
@@ -229,7 +255,7 @@ models:
 
 ## Test Coverage Audit
 
-Check what's missing:
+Start by running `node tools/clis/manifest-coverage.js --manifest target/manifest.json` to identify models with no tests, then review `node tools/clis/test-results.js --results target/run_results.json` to see existing failures.
 
 ```bash
 # List all models with no tests
@@ -395,3 +421,18 @@ When tests fail in production:
 4. Patch source data or transform logic (don't just silence the test)
 5. Backfill affected partitions/incremental windows
 6. Add a postmortem test to prevent recurrence
+
+## Verify Your Work
+
+- Run `dbt test` to execute all schema and singular tests.
+- Run `dbt test --store-failures` to persist failing rows for inspection.
+- Run `node tools/clis/test-results.js --results target/run_results.json` to see a structured summary of pass/fail/warn counts by model.
+- Review the output for any `ERROR` severity tests — those must pass before merging or deploying.
+
+## If Something Goes Wrong
+
+- **Test compile error**: The test name references a column that doesn't exist — check spelling against the model's actual column list.
+- **Relationship test fails**: Verify the FK column is populated and the referenced PK exists in the target model; add `where: "fk_column is not null"` if NULLs are expected.
+- **Too many failures stored**: Add `limit: 500` to the `store_failures` config to prevent bloating the target schema.
+- **Elementary not found**: Check `packages.yml` has `elementary-data/elementary`, then run `dbt deps` to install it.
+- **`data_tests:` key not recognized**: Your dbt version is older than 1.8 — use the `tests:` key instead.

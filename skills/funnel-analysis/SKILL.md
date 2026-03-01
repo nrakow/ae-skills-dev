@@ -1,11 +1,35 @@
 ---
 name: funnel-analysis
-description: "Build funnel analysis models for conversion tracking. Use when measuring step-by-step conversion through a user flow, calculating drop-off rates between funnel stages, or building a reusable funnel framework. Triggers: 'funnel analysis', 'conversion funnel', 'drop-off analysis', 'funnel model', 'conversion rate', 'funnel steps'."
+description: "Build funnel analysis models that measure step-by-step conversion rates and identify where users drop off. Use when tracking conversion through a user flow, calculating drop-off rates between funnel stages, building a reusable funnel macro, or segmenting funnel performance by cohort, channel, or device. Produces dbt fact models, aggregation models, and a reusable Jinja funnel macro."
+triggers:
+  - "funnel analysis"
+  - "conversion funnel"
+  - "drop-off analysis"
+  - "where are users dropping off"
+  - "measure conversion rate between steps"
+reads_first:
+  - data-stack-context
+cli_tools: []
+produces:
+  - "dbt model SQL (fct_*_funnel, mtr_funnel_summary)"
+  - "Jinja funnel macro (macros/funnel.sql)"
+  - "schema.yml column documentation"
+validates_with:
+  - "dbt compile --select tag:funnel"
+  - "dbt test --select tag:funnel"
+  - "dbt run --select fct_signup_conversion_funnel --limit 500"
+  - "dbt run --select mtr_funnel_summary"
 ---
 
 # Funnel Analysis
 
 I'll help you build funnel analysis models that measure step-by-step conversion rates and identify where users drop off.
+
+## Before You Start
+
+Read these project files before proceeding:
+
+- `.claude/data-stack-context.md` — warehouse type, event data structure, and the key conversion funnels to measure
 
 ## Check Context First
 
@@ -297,3 +321,31 @@ where f.completed_step_2 = true
   and f.completed_step_3 = false
 group by 1, 2, 3, 4
 ```
+
+---
+
+## Verify Your Work
+
+Run these commands after building your funnel models to confirm correctness:
+
+```bash
+# Compile all funnel models to catch SQL syntax errors
+dbt compile --select tag:funnel
+
+# Run data tests — not_null on user_id, completed_step_1 always true
+dbt test --select tag:funnel
+
+# Spot-check that step counts are monotonically decreasing (step N+1 <= step N)
+dbt run --select mtr_funnel_summary
+
+# Confirm no user appears in the funnel more than once (grain check)
+dbt test --select fct_signup_conversion_funnel --select unique_combination_of_columns
+```
+
+## If Something Goes Wrong
+
+- **Step counts are not monotonically decreasing** (step 3 count > step 2 count): The sequential ordering constraint (`step_3_at >= step_2_at`) is missing or wrong. Verify the LEFT JOIN conditions enforce ordering and the time window check references the correct step timestamp.
+- **Overall conversion rate is higher than expected**: Check whether users are being double-counted. The funnel grain should be one row per unique `user_id`. Add a `dbt test` for `unique` on the `user_id` column of the fact model.
+- **NULL step timestamps causing incorrect completion flags**: A NULL `step_2_at` in the boolean expression evaluates to NULL (not FALSE) in some warehouses. Wrap completion flags with `coalesce(..., false)` to make them explicit booleans.
+- **Funnel macro Jinja errors**: The loop variable `loop.index - 1` is zero-based in Jinja. Verify the generated SQL with `dbt compile` and inspect the compiled output in `target/compiled/`.
+- **BigQuery COUNTIF returning 0 for all steps**: Confirm the `event_name` values in the `CASE` statement exactly match the values in your events table — these are case-sensitive in BigQuery.

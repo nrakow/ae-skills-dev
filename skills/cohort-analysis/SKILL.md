@@ -1,11 +1,35 @@
 ---
 name: cohort-analysis
-description: "Design cohort retention and behavioral analysis models. Use when measuring user retention over time, building cohort tables for product or revenue analysis, calculating LTV by acquisition cohort, or understanding how user behavior varies by when they joined. Triggers: 'cohort analysis', 'retention analysis', 'cohort retention', 'LTV by cohort', 'cohort table', 'retention curve', 'user retention'."
+description: "Design and build cohort retention and LTV models for product and revenue analysis. Use when measuring user retention over time, calculating lifetime value by acquisition cohort, building cohort triangle tables, or understanding how behavior varies by when users joined. Produces dbt mart models for retention and cumulative LTV."
+triggers:
+  - "build a cohort analysis"
+  - "measure user retention"
+  - "calculate LTV by cohort"
+  - "create a retention curve"
+  - "show me cohort retention"
+reads_first:
+  - data-stack-context
+cli_tools: []
+produces:
+  - "dbt model SQL (fct_cohort_retention)"
+  - "dbt model SQL (fct_cohort_ltv)"
+  - "dbt model SQL (fct_day_n_retention)"
+  - "schema.yml column descriptions"
+validates_with:
+  - "dbt run --select fct_cohort_retention fct_cohort_ltv"
+  - "dbt test --select fct_cohort_retention fct_cohort_ltv"
+  - "dbt compile --select fct_cohort_retention"
 ---
 
 # Cohort Analysis
 
 I'll help you build cohort models that measure retention, revenue, and behavior over time for groups of users who share a common start event.
+
+## Before You Start
+
+Read the following files before proceeding:
+
+- `.claude/data-stack-context.md` — warehouse type, key cohort events (signup, first purchase), retention metrics to track, and dbt project structure
 
 ## Check Context First
 
@@ -317,3 +341,45 @@ select
 from {{ ref('fct_cohort_retention') }}
 left join {{ ref('fct_cohort_ltv') }} using (cohort_month, period_number)
 ```
+
+---
+
+## Verify Your Work
+
+After building cohort models, verify correctness with:
+
+```bash
+# Run all cohort models
+dbt run --select fct_cohort_retention fct_cohort_ltv fct_day_n_retention
+
+# Run tests
+dbt test --select fct_cohort_retention fct_cohort_ltv
+```
+
+```sql
+-- Confirm period_0 retention is always 1.0 (100%) for every cohort
+SELECT cohort_month, retention_rate
+FROM fct_cohort_retention
+WHERE period_number = 0
+  AND retention_rate != 1.0;
+-- Should return 0 rows
+
+-- Confirm cohort sizes are reasonable (no cohort of 1 user skewing percentages)
+SELECT cohort_month, cohort_size
+FROM fct_cohort_retention
+WHERE period_number = 0
+ORDER BY cohort_month;
+
+-- Confirm cumulative LTV only increases over time per cohort
+SELECT acquisition_cohort, months_since_acquisition, cumulative_ltv_per_customer_usd
+FROM fct_cohort_ltv
+ORDER BY acquisition_cohort, months_since_acquisition;
+```
+
+## If Something Goes Wrong
+
+- **Period 0 retention is not 1.0**: The `cohort_sizes` CTE and `cohort_summary` are pulling from different populations; ensure both use the same `cohort_base` definition and the same `user_id` field without additional filters in the activity CTE that exclude cohort members.
+- **Retention rates exceed 1.0**: Users are being counted in activity months before their cohort month; check the `and a.active_month >= c.cohort_month` join condition is present.
+- **Very recent cohorts show low retention for later periods**: This is expected — recent cohorts have not yet had enough time to reach later periods. Filter to `period_number <= months_since_cohort_start` when presenting to stakeholders.
+- **`datediff` function not available**: BigQuery uses `DATE_DIFF(date1, date2, MONTH)`; Redshift and DuckDB use `DATEDIFF('month', date1, date2)`; Snowflake uses `DATEDIFF('month', date1, date2)` — adjust dialect to match your warehouse.
+- **Cumulative LTV window function returning nulls**: Ensure the `months_since_acquisition` filter (`WHERE months_since_acquisition IS NOT NULL`) is applied before the window, otherwise null periods pollute the running sum.

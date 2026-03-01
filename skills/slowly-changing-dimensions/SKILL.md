@@ -1,11 +1,37 @@
 ---
 name: slowly-changing-dimensions
 description: "Design and implement SCD Type 1, 2, and 3 patterns in dbt. Use when you need to track historical changes in dimension attributes, implement dbt snapshots, or choose the right SCD type for a business requirement. Triggers: 'SCD', 'slowly changing dimension', 'track historical changes', 'dbt snapshot', 'customer history', 'attribute history'."
+triggers:
+  - "SCD"
+  - "slowly changing dimension"
+  - "history tracking"
+  - "type 2 SCD"
+  - "dbt snapshot"
+  - "track changes"
+reads_first:
+  - data-stack-context
+  - staging-layer
+cli_tools:
+  - model-stats.js
+produces:
+  - "dbt snapshot SQL"
+  - "schema.yml"
+validates_with:
+  - "dbt snapshot"
+  - "dbt test --select snapshots"
 ---
 
 # Slowly Changing Dimensions
 
 I'll help you design and implement the right SCD pattern for tracking how dimension attributes change over time.
+
+## Before You Start
+
+Before writing snapshot SQL, confirm two things in the upstream staging model:
+- The `unique_key` column is non-null and stable (not reassigned by the source)
+- The `updated_at` column exists and is actually updated on record changes (verify with a quick row count check)
+
+Also check the `snapshots/` directory for existing snapshot definitions to avoid naming conflicts.
 
 ## Check Context First
 
@@ -278,6 +304,32 @@ having count(*) > 1
 ```
 
 Run it with: `dbt test --select dim_customers_history`
+
+## Verify Your Work
+
+After writing the snapshot, run it and test the output:
+
+```bash
+dbt snapshot
+dbt test --select snapshots
+```
+
+Then spot-check the validity window population with a sample query:
+
+```sql
+SELECT customer_id, dbt_valid_from, dbt_valid_to, is_current
+FROM snapshots.snapshot_customers
+ORDER BY customer_id, dbt_valid_from
+LIMIT 50;
+```
+
+Confirm `dbt_valid_to` is non-null on historical rows and null on current rows.
+
+## If Something Goes Wrong
+
+- **All rows show as new on every run**: The `unique_key` is wrong or null — every run looks like a new record. Check that the column has no nulls and matches the primary key of the source.
+- **`dbt_valid_to` is never set**: Changes aren't being detected. For `timestamp` strategy, confirm `updated_at` actually changes in the source when records change. For `check` strategy, verify `check_cols` includes the columns that change.
+- **Duplicate active records**: Multiple rows with `dbt_valid_to IS NULL` for the same entity. The `unique_key` has a collision — check if the source deduplicates properly before the snapshot runs.
 
 ## Performance Considerations
 

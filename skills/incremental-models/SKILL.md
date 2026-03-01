@@ -1,11 +1,41 @@
 ---
 name: incremental-models
 description: "Implement incremental dbt models with appropriate strategies per warehouse. Use when full table refreshes are too slow or expensive, processing event streams, or implementing efficient large-table updates. Triggers: 'incremental model', 'dbt incremental', 'append only', 'upsert', 'merge strategy', 'avoid full refresh', 'large table dbt'."
+triggers:
+  - "incremental model"
+  - "large table"
+  - "event stream"
+  - "append-only"
+  - "incremental strategy"
+  - "microbatch"
+reads_first:
+  - data-stack-context
+  - staging-layer
+cli_tools:
+  - model-stats.js
+  - manifest-coverage.js
+produces:
+  - "incremental dbt SQL"
+  - "schema.yml"
+validates_with:
+  - "dbt compile"
+  - "dbt build --select <model>"
+  - "dbt build --select <model> --full-refresh"
 ---
 
 # Incremental Models
 
 I'll help you implement dbt incremental models that process only new/changed data instead of rebuilding entire tables, with the right strategy for your warehouse.
+
+## Before You Start
+
+Check whether the table is actually large enough to warrant incremental before building it:
+
+```bash
+node tools/clis/model-stats.js --manifest target/manifest.json
+```
+
+Also read the upstream staging model to confirm the timestamp column you plan to filter on actually exists and is non-null.
 
 ## Check Context First
 
@@ -334,6 +364,24 @@ When reprocessing historical data:
 5. **Re-run BI extracts** — dashboards may have cached stale data
 
 Never silently partial-backfill. Always cascade through the DAG.
+
+## Verify Your Work
+
+Run the incremental build first, then force a full refresh and compare row counts:
+
+```bash
+dbt build --select <model>
+dbt build --select <model> --full-refresh
+```
+
+If the row counts differ significantly after full refresh, the lookback window is too short — extend it by 2x and re-test. The full-refresh count is the ground truth.
+
+## If Something Goes Wrong
+
+- **Row count drops after incremental run**: The lookback window is too short and late-arriving events are being missed. Extend the lookback buffer (e.g., from 3 hours to 6 hours) and run a full refresh to confirm.
+- **Duplicate rows**: The `unique_key` is wrong or null-able. Confirm the key is stable and non-nullable; use `dbt_utils.generate_surrogate_key()` if no single natural key exists.
+- **Schema drift error**: A new column appeared in the source and `on_schema_change='fail'` is set. Switch temporarily to `append_new_columns`, run the incremental, then revert to `fail` and update the model to include the new column explicitly.
+- **Merge conflicts on Redshift**: Redshift MERGE is slow and lock-prone on large tables. Switch `incremental_strategy` to `delete+insert` which is more efficient for Redshift.
 
 ## Common Mistakes
 

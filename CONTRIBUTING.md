@@ -29,28 +29,54 @@ mkdir skills/your-skill-name
 
 Every skill requires a `SKILL.md` file with valid YAML frontmatter:
 
-```markdown
+```yaml
 ---
 name: your-skill-name
 description: "A concise description of what this skill does. Include trigger phrases users might say, such as 'help me build a staging layer' or 'set up incremental models'. Max 1024 characters."
+triggers:
+  - "trigger phrase one"
+  - "trigger phrase two"
+reads_first:
+  - data-stack-context
+cli_tools:
+  - relevant-tool.js
+produces:
+  - "dbt model SQL"
+  - "schema.yml"
+validates_with:
+  - "dbt compile"
+  - "dbt test --select <model>"
 ---
 
 ## Overview
 
 Brief introduction to what this skill helps with.
 
-## Usage
+## Before You Start
+
+List project files to read before beginning (dbt_project.yml, upstream schema.yml, packages.yml, etc.).
+
+## Core Content
 
 How to invoke this skill and what to expect.
 
-## Examples
+## Verify Your Work
 
-Concrete examples with SQL snippets, YAML configs, or step-by-step instructions.
+Commands to run after implementing to confirm correctness.
+
+## If Something Goes Wrong
+
+3-5 bullet points covering common failure modes and remediation steps.
 ```
 
 **Frontmatter requirements:**
-- `name`: 1-64 characters, must exactly match the directory name
-- `description`: 1-1024 characters; include trigger phrases and use cases
+- `name`: 1-64 characters, must exactly match the directory name (required)
+- `description`: 1-1024 characters; include trigger phrases and use cases (required)
+- `triggers`: list of phrases an agent should recognize to invoke this skill (recommended)
+- `reads_first`: other skills or context files to load before this one (recommended)
+- `cli_tools`: CLI tools from `tools/clis/` relevant to this skill (recommended)
+- `produces`: list of artifact types this skill outputs (recommended)
+- `validates_with`: shell commands to run after skill execution to confirm correctness (recommended)
 
 ### 4. Follow Content Guidelines
 
@@ -73,6 +99,14 @@ Before submitting, verify your skill:
 - [ ] Frontmatter `name` matches the directory name exactly
 - [ ] Description is under 1024 characters and includes trigger phrases
 - [ ] SKILL.md is under 500 lines
+- [ ] `triggers` list includes 2+ natural-language phrases that would invoke this skill
+- [ ] `reads_first` lists any skills or context files that must be loaded before this skill runs
+- [ ] `cli_tools` references any tools from `tools/clis/` that this skill uses
+- [ ] `produces` lists the concrete artifacts this skill outputs
+- [ ] `validates_with` lists the commands to run after the skill completes to confirm correctness
+- [ ] Skill includes a "Before You Start" section listing project files to read
+- [ ] Skill includes a "Verify Your Work" section with validation commands
+- [ ] Skill includes an "If Something Goes Wrong" section with 3-5 common failure modes
 
 ### 6. Register the Skill in VERSIONS.md
 

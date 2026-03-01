@@ -1,11 +1,34 @@
 ---
 name: sql-style-guide
-description: "Generate or audit SQL style guides for your team, and produce linter configs for SQLFluff or sqlfmt. Use when onboarding a new team, establishing SQL standards, auditing existing SQL for style compliance, or configuring automated SQL linting. Triggers: 'SQL style guide', 'SQL linting', 'SQLFluff config', 'SQL conventions', 'format SQL', 'audit SQL style'."
+description: "Establish and enforce SQL formatting standards, naming conventions, and linting rules for analytics engineering. Use when setting up a new project, onboarding contributors, or enforcing consistency across models. Triggers: 'sql style', 'code style', 'sql formatting', 'sqlfluff', 'linting', 'naming conventions', 'sql standards'."
+triggers:
+  - "sql style"
+  - "code style"
+  - "sql formatting"
+  - "sqlfluff"
+  - "linting"
+  - "naming conventions"
+reads_first:
+  - data-stack-context
+cli_tools: []
+produces:
+  - ".sqlfluff config"
+  - "style guide documentation"
+validates_with:
+  - "sqlfluff lint models/"
+  - "sqlfluff fix models/"
 ---
 
 # SQL Style Guide
 
 I'll help you establish SQL coding standards, generate a team style guide, or configure SQLFluff to enforce it automatically.
+
+## Before You Start
+
+Gather context before generating a config to match the team's existing patterns:
+- Check if `.sqlfluff` already exists at the project root — if so, audit it rather than overwrite
+- Read 2-3 existing SQL files from `models/` to understand current style conventions
+- Check `packages.yml` for any existing linting-related packages already in use
 
 ## Check Context First
 
@@ -325,6 +348,24 @@ jobs:
       - name: Check (fail on errors only, not warnings)
         run: sqlfluff lint models/ --nocolor
 ```
+
+## Verify Your Work
+
+After creating or updating `.sqlfluff`, run the linter and auto-fixer against the models directory:
+
+```bash
+sqlfluff lint models/
+sqlfluff fix models/
+```
+
+Review reported violations and fix any that are genuine style gaps. If violations are numerous, use `sqlfluff fix models/` for auto-fixable rules and address the rest incrementally. Confirm the CI workflow (`sqlfluff lint models/`) passes with no errors before merging.
+
+## If Something Goes Wrong
+
+- **Dialect mismatch errors**: SQLFluff reports "unexpected token" on valid warehouse-specific SQL. Set `dialect = <warehouse>` explicitly in `.sqlfluff` (snowflake, bigquery, sparksql, redshift).
+- **Rule conflicts / too many violations**: Disable specific noisy rules with `exclude_rules = AL01, ST06` in `.sqlfluff` until the team agrees on them. Start with a small rule set and expand over time.
+- **dbt Jinja templating errors**: SQLFluff can't parse `{{ ref() }}` or `{{ config() }}` blocks. Set `templater = dbt` in `.sqlfluff` and run `dbt deps` first so the templater can resolve macros.
+- **CI fails on legacy files**: Add a `.sqlfluff-ignore` file (or `exclude_rules` per path) to exclude `seeds/`, `analyses/`, and `target/` from linting runs.
 
 ## Audit Mode
 

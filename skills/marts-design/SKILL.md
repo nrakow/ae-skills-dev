@@ -1,11 +1,40 @@
 ---
 name: marts-design
-description: "Design business-facing data mart layers with clear grain, ownership, and access patterns. Use when building the final analytics layer, organizing marts by business domain, defining what goes in each mart vs. core, or planning mart governance. Triggers: 'design a mart', 'data mart structure', 'business mart', 'analytics mart', 'organize marts', 'mart ownership'."
+description: "Design and build dbt mart models including fact tables, dimension tables, and star/snowflake schemas. Use when building a new reporting domain, designing a fact table for a business process, or creating dimension tables for reporting. Triggers: 'design a mart', 'fact table', 'dimension table', 'build a mart', 'star schema', 'reporting model', 'fct_ model', 'dim_ model'."
+triggers:
+  - "design a mart"
+  - "fact table"
+  - "dimension table"
+  - "build a mart"
+  - "star schema"
+  - "fct_ model"
+  - "dim_ model"
+reads_first:
+  - data-stack-context
+  - data-modeling
+  - staging-layer
+cli_tools:
+  - manifest-parse.js
+  - schema-introspect.js
+produces:
+  - "fct_ or dim_ model SQL"
+  - "schema.yml with column docs"
+validates_with:
+  - "dbt compile"
+  - "dbt test --select marts"
 ---
 
 # Marts Design
 
 I'll help you design the data mart layer — the business-facing output of your dbt project — with clear domain ownership, consistent grain, and BI-ready structure.
+
+## Before You Start
+
+Read and check these before generating mart SQL to avoid naming collisions and understand available inputs:
+- `.claude/data-stack-context.md` — BI tool, warehouse type, and team structure determine mart design choices
+- `dbt_project.yml` — confirm mart model paths and default materializations under the `marts:` key
+- Existing `schema.yml` files in `models/staging/` and `models/intermediate/` — understand available columns before designing joins
+- Run `node tools/clis/manifest-parse.js --manifest target/manifest.json` if a compiled manifest exists to see all available `ref()` targets and avoid naming collisions
 
 ## Check Context First
 
@@ -236,6 +265,24 @@ columns:
         deprecated: true
         remove_after: "2025-01-01"
 ```
+
+## Verify Your Work
+
+After generating mart SQL and schema.yml, compile and run tests:
+
+```bash
+dbt compile --select marts
+dbt test --select marts
+```
+
+The compile step catches ref() errors and syntax issues. The test step validates primary key uniqueness and foreign key relationships defined in schema.yml.
+
+## If Something Goes Wrong
+
+- **Fanout from joins**: Row count in the mart is higher than expected. Check join cardinality — use `COUNT(*) / COUNT(DISTINCT primary_key)` to detect fanout. Identify the M:M join and resolve it with aggregation or deduplication before joining.
+- **Missing upstream ref**: `dbt compile` reports a model not found. Confirm the staging model exists under `models/staging/`; run the staging-layer skill first if it doesn't.
+- **PK uniqueness test fails**: A `unique` test on the fact primary key is failing. Either the grain definition is wrong (rows represent different things than expected) or the join is creating duplicates — add a deduplication step or fix the join condition.
+- **Naming collision**: A mart model name already exists. Run `node tools/clis/manifest-parse.js --manifest target/manifest.json` to list all current model names before renaming.
 
 ## Red Flags in Mart Design
 

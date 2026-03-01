@@ -1,6 +1,23 @@
 ---
 name: dbt-unit-testing
-description: "Write and run dbt unit tests to validate SQL transformation logic with mocked inputs. Use when you need to unit test a dbt model, mock dbt model inputs, test SQL logic without a warehouse connection, write dbt 1.8 tests, add dbt unit test fixtures, or test edge cases like null handling and division by zero. Triggers: 'unit test', 'mock dbt model', 'test SQL logic', 'dbt unit test', 'dbt 1.8 tests', 'test my model logic', 'fixture', 'mock ref', 'warehouse-free testing'."
+description: "Write dbt unit tests (dbt 1.8+) to validate SQL transformation logic with mocked inputs and expected outputs. Use when testing complex business logic in isolation, building test-driven transformations, or catching regressions in model SQL. Triggers: 'unit test', 'dbt unit test', 'test SQL logic', 'mock data', 'test transformation', 'unit testing dbt', 'test business logic'."
+triggers:
+  - "unit test"
+  - "dbt unit test"
+  - "test SQL logic"
+  - "mock data"
+  - "test transformation"
+  - "unit testing dbt"
+reads_first:
+  - data-stack-context
+  - data-quality-testing
+cli_tools:
+  - test-results.js
+produces:
+  - "dbt unit test YAML"
+validates_with:
+  - "dbt test --select type:unit"
+  - "node tools/clis/test-results.js --results target/run_results.json"
 ---
 
 # dbt Unit Testing
@@ -10,6 +27,13 @@ I'll help you write dbt unit tests that validate SQL transformation logic using 
 ## Check Context First
 
 Read `.claude/data-stack-context.md`. Key inputs: dbt version (must be 1.8+), warehouse type, existing test patterns, CI platform.
+
+## Before You Start
+
+- Confirm dbt version is 1.8+ — unit tests are not available in earlier versions; use singular tests as an alternative.
+- Read the model SQL being tested to identify all `ref()` and `source()` calls — every one of them needs a `given:` block or dbt will error.
+- Check `packages.yml` for `dbt_utils` if the model uses surrogate keys or utility macros that need mocking.
+- Review the existing `schema.yml` for the model to see if any unit tests already exist before adding new ones.
 
 ## Unit Tests vs Data Tests vs Singular Tests
 
@@ -420,3 +444,16 @@ If the macro's logic itself has branches, cover them with separate unit tests fe
 - [ ] `dbt test --select test_type:unit` passes locally
 - [ ] CI Stage 1 (unit tests, no warehouse) is gated before Stage 2 (data tests, warehouse)
 - [ ] Time-dependent columns use `overrides:` or are excluded from `expect:` assertions
+
+## Verify Your Work
+
+- Run `dbt test --select type:unit` to execute all unit tests.
+- Run `node tools/clis/test-results.js --results target/run_results.json` to see pass/fail per unit test with structured output.
+- Run `dbt parse` first to catch YAML syntax errors before running tests.
+
+## If Something Goes Wrong
+
+- **"unit tests require dbt >= 1.8" error**: Upgrade dbt or use singular tests (custom SQL in `tests/`) as an alternative for the same assertions.
+- **Input not found**: Verify the `given:` block uses the exact `ref()` or `source()` name as it appears in the model SQL — a typo or missing input block will cause a compile error.
+- **Expected/actual mismatch**: Add a row count check first to confirm the output has the right number of rows, then compare column by column to isolate the mismatch.
+- **Time-sensitive columns produce non-deterministic results**: Exclude them from `expect:` or use `overrides: macros:` to mock the date function to a fixed value.

@@ -1,11 +1,34 @@
 ---
 name: activity-schema
-description: "Model event streams using the Activity Schema pattern. Use when building a single unified activity stream from multiple sources, modeling user behavior over time, or implementing a flexible event-based analytics layer. Triggers: 'activity schema', 'event stream modeling', 'unified activity', 'user activity table', 'behavioral analytics model', 'single activity table'."
+description: "Model event streams using the Activity Schema pattern, producing a single unified activity stream from multiple sources. Use when building behavioral analytics, modeling user journeys over time, or implementing a flexible event-based analytics layer that avoids per-event-type tables. Produces a dbt mart model and companion entity enrichment model."
+triggers:
+  - "build an activity schema"
+  - "model event streams as a unified activity table"
+  - "set up behavioral analytics"
+  - "create a user activity stream"
+  - "implement activity schema pattern"
+reads_first:
+  - data-stack-context
+cli_tools: []
+produces:
+  - "dbt model SQL (activity_stream mart)"
+  - "dbt model SQL (entity_enrichment mart)"
+  - "schema.yml column descriptions"
+validates_with:
+  - "dbt run --select activity_stream entity_enrichment"
+  - "dbt test --select activity_stream entity_enrichment"
+  - "dbt compile --select activity_stream"
 ---
 
 # Activity Schema
 
 I'll help you implement the Activity Schema — a pattern for modeling event data as a single, unified activity stream that enables powerful behavioral queries without complex joins.
+
+## Before You Start
+
+Read the following files before proceeding:
+
+- `.claude/data-stack-context.md` — warehouse type, existing event tables or source schema, and dbt project structure
 
 ## What Is Activity Schema?
 
@@ -288,3 +311,44 @@ group by 1
 
 **When to use:** Behavioral analytics, conversion analysis, user journey analysis.
 **When to avoid:** Operational systems needing strict schema; real-time < 1 second; PB-scale (use separate tables per event type).
+
+---
+
+## Verify Your Work
+
+After building the activity stream, confirm correctness with:
+
+```bash
+# Compile and run the models
+dbt run --select activity_stream entity_enrichment
+
+# Run all tests
+dbt test --select activity_stream entity_enrichment
+```
+
+```sql
+-- Confirm all expected activity types are present
+SELECT activity, count(*) as event_count
+FROM activity_stream
+GROUP BY activity
+ORDER BY event_count DESC;
+
+-- Confirm no duplicate activity_id values (surrogate key uniqueness)
+SELECT activity_id, count(*) as cnt
+FROM activity_stream
+GROUP BY activity_id
+HAVING cnt > 1;
+
+-- Confirm revenue_impact sign is correct (cancellations should be negative)
+SELECT activity, sum(revenue_impact) as total_revenue
+FROM activity_stream
+GROUP BY activity;
+```
+
+## If Something Goes Wrong
+
+- **Duplicate rows in the activity stream**: The surrogate key uses `entity_id + activity + ts + feature_1`; if `feature_1` (the identifier) is null for some events, multiple rows with the same timestamp and activity will collide — ensure `feature_1` is always populated for events with possible duplicates, or add another disambiguating field.
+- **UNION ALL column count mismatch**: All CTEs must select the same seven columns in the same order (`entity_id`, `activity`, `ts`, `revenue_impact`, `feature_1`, `feature_2`, `feature_3`); a missing column in one branch will cause a compile error.
+- **Sequence queries returning no results**: Confirm both activity types are spelled exactly the same as they appear in the `activity` column — activity names are case-sensitive strings.
+- **`dbt_utils.generate_surrogate_key` not found**: Ensure `dbt-utils` is in `packages.yml` and run `dbt deps` before running the model.
+- **Exclusion query (`NOT IN`) returning incorrect results**: If the subquery returns any `NULL` entity_ids, `NOT IN` will return no rows; use `NOT EXISTS` or filter out nulls from the subquery with `WHERE entity_id IS NOT NULL`.

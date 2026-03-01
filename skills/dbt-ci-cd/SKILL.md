@@ -1,6 +1,27 @@
 ---
 name: dbt-ci-cd
-description: "Set up CI/CD for dbt projects with testing, linting, and deployment automation. Use when implementing a PR review pipeline, setting up automated dbt tests on pull requests, deploying dbt to production, or migrating from manual to automated dbt deployments. Triggers: 'dbt CI/CD', 'automate dbt', 'dbt pull request checks', 'dbt deployment', 'dbt GitHub Actions', 'dbt production deploy'."
+description: "Set up CI/CD pipelines for dbt projects using GitHub Actions, GitLab CI, or dbt Cloud jobs with slim CI and state comparison. Use when automating dbt deployments, setting up PR checks, or implementing environment promotion. Triggers: 'CI/CD', 'continuous integration', 'GitHub Actions', 'slim CI', 'deployment pipeline', 'dbt deploy', 'automate dbt', 'dbt cloud jobs'."
+triggers:
+  - "CI/CD"
+  - "continuous integration"
+  - "GitHub Actions"
+  - "slim CI"
+  - "deployment pipeline"
+  - "automate dbt"
+  - "dbt cloud jobs"
+reads_first:
+  - data-stack-context
+  - dbt-project-setup
+cli_tools:
+  - manifest-coverage.js
+  - test-results.js
+produces:
+  - ".github/workflows/dbt-ci.yml"
+  - "dbt Cloud job configuration"
+validates_with:
+  - "dbt parse"
+  - "dbt build --select state:modified+"
+  - "node tools/clis/manifest-coverage.js --manifest target/manifest.json"
 ---
 
 # dbt CI/CD
@@ -10,6 +31,13 @@ I'll help you build a CI/CD pipeline that automatically tests, lints, and deploy
 ## Check Context First
 
 Read `.claude/data-stack-context.md`. Key inputs: dbt Core or Cloud, warehouse type, CI platform (GitHub Actions/GitLab CI), git workflow.
+
+## Before You Start
+
+- Check if `.github/workflows/` directory exists and read any existing CI config before creating a new one.
+- Run `node tools/clis/manifest-coverage.js --manifest target/manifest.json` to see current test coverage — CI will only be as good as the tests it runs.
+- Confirm that `target/manifest.json` (prod baseline) is stored in S3/GCS/artifact storage — slim CI requires a previous manifest for state comparison.
+- Verify warehouse CI credentials (role, user, schema) exist before writing the workflow.
 
 ## CI/CD Workflow Overview
 
@@ -413,3 +441,15 @@ for schema_name in (
 end for;
 commit;
 ```
+
+## Verify Your Work
+
+- Run `dbt parse` locally to confirm the workflow's dbt commands will succeed before committing.
+- Test the slim CI command locally: `dbt build --select state:modified+ --defer --state <previous-manifest-path>` before pushing the workflow file.
+- After first CI run, check the GitHub Actions log to confirm the manifest upload step succeeded.
+
+## If Something Goes Wrong
+
+- **State comparison fails**: The previous manifest was not found — confirm the artifact upload/download steps in the CI workflow reference the correct S3/GCS path and that credentials are set.
+- **Credentials not found in CI**: Check that secrets are set in the GitHub Actions environment or repository secrets — environment-scoped secrets require the `environment:` key in the job definition.
+- **Slim CI selects too many models**: Verify `--defer` is configured correctly and the manifest comes from the prod environment, not a stale CI run.

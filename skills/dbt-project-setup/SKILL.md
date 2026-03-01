@@ -1,11 +1,38 @@
 ---
 name: dbt-project-setup
-description: "Scaffold a production-ready dbt project with folder structure, profiles, packages, and CI/CD configs. Use when starting a new dbt project, migrating from another tool, or auditing an existing setup for best practices. Triggers: 'set up dbt', 'new dbt project', 'dbt folder structure', 'dbt profiles', 'dbt packages', 'scaffold dbt'."
+description: "Scaffold a production-ready dbt project with folder structure, profiles, packages, and CI/CD configuration. Use when starting a new dbt project or auditing an existing project structure. Triggers: 'set up dbt', 'new dbt project', 'scaffold dbt', 'bootstrap dbt project', 'dbt project structure', 'initialize dbt'."
+triggers:
+  - "set up dbt"
+  - "new dbt project"
+  - "scaffold dbt"
+  - "bootstrap dbt project"
+  - "initialize dbt"
+reads_first:
+  - data-stack-context
+cli_tools: []
+produces:
+  - "dbt_project.yml"
+  - "profiles.yml"
+  - "packages.yml"
+  - ".github/workflows/dbt.yml"
+  - "generate_schema_name macro"
+validates_with:
+  - "dbt parse"
+  - "dbt debug"
+  - "dbt deps"
+  - "dbt build"
 ---
 
 # dbt Project Setup
 
 I'll scaffold a production-ready dbt project structure with sensible defaults, then walk you through adapter config, packages, and CI setup.
+
+## Before You Start
+
+Check these before generating any files to avoid overwriting existing work:
+- `dbt_project.yml` — if it already exists, do not overwrite; offer to audit it instead
+- `packages.yml` — read if present to see existing dependencies before adding new ones
+- `.env.example` — review for credential patterns that should carry into `profiles.yml`
 
 ## Check Context First
 
@@ -360,6 +387,17 @@ dbt source freshness
 # Generate docs
 dbt docs generate && dbt docs serve
 ```
+
+## Verify Your Work
+
+Run the Post-Setup Checklist already in this skill (the `dbt parse`, `dbt debug`, `dbt deps`, `dbt build --select staging` sequence). All five commands should exit cleanly before considering the setup done. Pay particular attention to `dbt debug` — it confirms the warehouse connection and profiles path before any models are run.
+
+## If Something Goes Wrong
+
+- **Profile not found**: `dbt debug` reports "profile not found". Check that `profiles.yml` exists at `~/.dbt/profiles.yml` (default) or the path set in `DBT_PROFILES_DIR`. The profile name in `profiles.yml` must match the `profile:` key in `dbt_project.yml`.
+- **Schema name conflicts**: Staging models materialize to `dev_staging` or `prod_staging` instead of `staging` in prod. Ensure the `generate_schema_name` macro is in `macros/` — without it, dbt appends the target schema prefix to every custom schema name.
+- **Package install fails / version conflict**: `dbt deps` fails with a version constraint error. Check [hub.getdbt.com](https://hub.getdbt.com) for the latest compatible version range for your dbt version; update the constraint in `packages.yml`.
+- **`dbt parse` errors on first run**: Usually a model path mismatch or missing `models/` directory. Confirm the `model-paths` setting in `dbt_project.yml` matches the actual directory structure; also check that `dbt_packages/` exists (run `dbt deps` first).
 
 ## Common Mistakes
 

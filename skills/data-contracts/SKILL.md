@@ -1,6 +1,26 @@
 ---
 name: data-contracts
-description: "Define and enforce data contracts between data producers and consumers. Use when establishing SLAs between data teams, preventing breaking schema changes, implementing contract-driven testing, or creating formal data product agreements. Triggers: 'data contract', 'schema contract', 'data SLA', 'breaking changes', 'producer consumer agreement', 'data product contract'."
+description: "Define and enforce data contracts between producers and consumers to prevent breaking changes and guarantee schema stability. Use when formalizing producer-consumer agreements, implementing schema constraints, or protecting downstream dependencies from upstream changes. Triggers: 'data contract', 'schema contract', 'data SLA', 'producer consumer', 'enforce schema', 'breaking changes', 'contract testing'."
+triggers:
+  - "data contract"
+  - "schema contract"
+  - "data SLA"
+  - "producer consumer"
+  - "enforce schema"
+  - "breaking changes"
+reads_first:
+  - data-stack-context
+  - data-quality-testing
+cli_tools:
+  - schema-introspect.js
+produces:
+  - "contract YAML"
+  - "dbt schema.yml constraints"
+  - "dbt model contracts"
+validates_with:
+  - "dbt parse"
+  - "dbt compile"
+  - "dbt test --select <model>"
 ---
 
 # Data Contracts
@@ -10,6 +30,13 @@ I'll help you define, implement, and enforce data contracts — formal agreement
 ## Check Context First
 
 Read `.claude/data-stack-context.md`. Key inputs: dbt version (contracts require dbt 1.5+), warehouse type, team maturity.
+
+## Before You Start
+
+- Run `node tools/clis/schema-introspect.js` to get the current warehouse schema as the baseline for the contract.
+- Read existing `schema.yml` files to identify already-documented columns before writing new contract definitions.
+- Confirm dbt version is 1.5+ — earlier versions do not support `contract.enforced: true`.
+- Identify who the consumers of this model are before defining SLAs and breaking change policies.
 
 ## What Is a Data Contract?
 
@@ -245,3 +272,16 @@ For teams new to data contracts:
 - Require contracts for all new mart models
 - Add contract checks to PR review checklist
 - Automate consumer notification on schema changes
+
+## Verify Your Work
+
+- Run `dbt parse` to validate contract YAML syntax and confirm `contract.enforced: true` is recognized.
+- Run `dbt test --select contracts` (or the tag used for contract tests) to confirm all contract-level tests pass.
+- Re-run `node tools/clis/schema-introspect.js` after any schema changes to confirm the live schema still matches the contract definition.
+
+## If Something Goes Wrong
+
+- **Contract violation on deploy**: An upstream model changed its schema — run `node tools/clis/schema-introspect.js` and compare the output to your contract YAML to find the mismatch.
+- **Constraint not enforced**: Verify dbt version is 1.5+ — contract enforcement is a 1.5+ feature and silently no-ops on older versions.
+- **Null in a not_null column**: The source data has upstream quality issues — add a `not_null` data test and trace the null back through the lineage.
+- **`dbt parse` fails on constraint type**: Check the warehouse-specific type names table above — type names vary by warehouse (e.g., `TIMESTAMP_NTZ` on Snowflake vs `TIMESTAMP` on BigQuery).

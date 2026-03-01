@@ -1,6 +1,26 @@
 ---
 name: anomaly-detection
-description: "Detect data anomalies using statistical methods or observability tools. Use when setting up automated data quality monitoring, detecting sudden drops or spikes in key metrics, identifying schema drift, or reducing time-to-detection for pipeline failures. Triggers: 'anomaly detection', 'data monitoring', 'detect data issues', 'row count dropped', 'metric spike', 'data drift', 'observability'."
+description: "Set up automated anomaly detection for data pipelines using Elementary or custom dbt tests. Use when implementing proactive data monitoring, detecting volume spikes or drops, catching distribution shifts, or alerting on freshness violations. Triggers: 'anomaly detection', 'detect anomalies', 'data spikes', 'outliers', 'elementary anomalies', 'volume monitoring', 'data monitoring', 'alert on data changes'."
+triggers:
+  - "anomaly detection"
+  - "detect anomalies"
+  - "data spikes"
+  - "volume monitoring"
+  - "data monitoring"
+  - "elementary anomalies"
+  - "alert on data"
+reads_first:
+  - data-stack-context
+  - data-quality-testing
+cli_tools:
+  - test-results.js
+  - source-freshness.js
+produces:
+  - "Elementary anomaly test YAML"
+  - "schema.yml anomaly tests"
+validates_with:
+  - "dbt test --select tag:elementary"
+  - "node tools/clis/test-results.js --results target/run_results.json"
 ---
 
 # Anomaly Detection
@@ -10,6 +30,13 @@ I'll help you set up automated anomaly detection for your data pipelines using E
 ## Check Context First
 
 Read `.claude/data-stack-context.md`. Key inputs: observability tool, dbt version, alerting channels (Slack, PagerDuty).
+
+## Before You Start
+
+- Run `node tools/clis/source-freshness.js` to check which sources are currently fresh before configuring anomaly detection.
+- Confirm `elementary-data/elementary` is in `packages.yml` and run `dbt deps` if not already installed.
+- Check how many days of historical data exist — Elementary needs at least `min_training_set_size` days (default 7) to establish a baseline.
+- Read the model's `schema.yml` to identify the timestamp column for `timestamp_column` config.
 
 ## Detection Categories
 
@@ -355,3 +382,16 @@ soda scan -d snowflake -c soda/configuration.yml soda/checks/fct_orders.yml
 | Null rate spike | Slack (urgent) |
 | Distribution anomaly | Slack (warning) |
 | Range violation | Slack (warning) |
+
+## Verify Your Work
+
+- Run `dbt test --select tag:elementary` to execute all Elementary anomaly tests.
+- Run `node tools/clis/test-results.js --results target/run_results.json` to see which models triggered anomaly alerts and review pass/fail/warn counts.
+- Check that Elementary internal models ran successfully: `dbt run --select elementary`.
+
+## If Something Goes Wrong
+
+- **No training data**: The model doesn't have enough history — wait for `min_training_set_size` days of data, or reduce the setting in the Elementary config block.
+- **Too many false positives**: Increase `anomaly_sensitivity` from the default `3.0` to `4` or `5` to require a larger deviation before alerting.
+- **Elementary package not found**: Add `elementary-data/elementary` to `packages.yml` and run `dbt deps`.
+- **Timestamp column missing or wrong**: Add a `timestamp_column` config to the model's Elementary block matching the actual event time column name in the table.

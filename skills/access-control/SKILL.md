@@ -1,11 +1,37 @@
 ---
 name: access-control
-description: "Design role-based access control for warehouse and BI layers. Use when setting up data access policies, implementing row-level or column-level security, granting appropriate permissions to analysts and BI tools, or auditing current access controls. Triggers: 'access control', 'data permissions', 'role-based access', 'row-level security', 'column masking', 'grant permissions', 'RBAC', 'data security'."
+description: "Design and implement role-based access control (RBAC) for warehouse and BI layers. Use when setting up data access policies, implementing row-level or column-level security, granting permissions to analysts and BI tools, or auditing current access controls. Produces SQL role grants, masking policies, row access policies, and Terraform IAM configs."
+triggers:
+  - "set up access control"
+  - "implement role-based access"
+  - "grant permissions to analysts"
+  - "add row-level security"
+  - "audit data permissions"
+reads_first:
+  - data-stack-context
+cli_tools: []
+produces:
+  - "SQL role and grant statements"
+  - "Snowflake masking policy SQL"
+  - "Snowflake row access policy SQL"
+  - "BigQuery IAM Terraform config"
+  - "LookML access grant definitions"
+validates_with:
+  - "SHOW GRANTS TO ROLE <role_name>;"
+  - "SHOW MASKING POLICIES;"
+  - "SELECT current_role(), current_user();"
+  - "dbt run --select tag:pii && dbt test --select tag:pii"
 ---
 
 # Access Control
 
 I'll help you design and implement role-based access control (RBAC) for your warehouse and BI layer, with least-privilege principles and audit-ready configurations.
+
+## Before You Start
+
+Read the following files before proceeding:
+
+- `.claude/data-stack-context.md` — warehouse type, compliance requirements (GDPR/HIPAA), team structure, and BI tool
 
 ## Check Context First
 
@@ -259,3 +285,38 @@ ORDER BY 2 DESC;
 - [ ] PII columns have masking policies applied
 - [ ] Row-level security tested with non-admin user
 - [ ] Access log reviewed for anomalies (off-hours bulk exports, etc.)
+
+---
+
+## Verify Your Work
+
+After applying access control changes, verify with these commands:
+
+```sql
+-- Confirm roles exist and grants are applied (Snowflake)
+SHOW ROLES;
+SHOW GRANTS TO ROLE REPORTER;
+SHOW GRANTS TO ROLE TRANSFORMER;
+
+-- Confirm masking policies are attached
+SHOW MASKING POLICIES;
+SELECT * FROM information_schema.policy_references WHERE policy_kind = 'MASKING_POLICY';
+
+-- Test as a non-privileged role to confirm masking works
+USE ROLE ANALYST_FINANCE;
+SELECT email FROM ANALYTICS.MARTS.DIM_CUSTOMERS LIMIT 5;
+-- Should show masked values like ****@domain.com
+```
+
+```bash
+# Run dbt tests on PII-tagged models to confirm column security
+dbt test --select tag:pii
+```
+
+## If Something Goes Wrong
+
+- **FUTURE GRANTS not applying to new tables**: Run `GRANT SELECT ON FUTURE TABLES IN SCHEMA <schema> TO ROLE <role>` explicitly per schema; Snowflake future grants are scoped to the database or schema level and must be re-applied when new schemas are added.
+- **Masking policy not masking**: Confirm the policy is attached to the column (`SHOW MASKING POLICIES` and `policy_references`), and that you are testing with a role that is NOT in the allowed list inside the policy body.
+- **dbt service account permission errors during run**: The TRANSFORMER role may be missing `USAGE` on a newly added schema or `CREATE TABLE` on a new schema; re-run `GRANT USAGE, CREATE TABLE ON SCHEMA <new_schema> TO ROLE TRANSFORMER`.
+- **BigQuery IAM propagation delay**: IAM changes can take up to 60 seconds to propagate; wait and retry before concluding a grant is broken.
+- **Row access policy blocking dbt during transformation**: Ensure the TRANSFORMER role is explicitly listed in the `OR current_role() IN (...)` clause of every row access policy applied to tables dbt reads.

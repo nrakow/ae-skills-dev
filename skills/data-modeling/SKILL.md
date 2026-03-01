@@ -1,11 +1,36 @@
 ---
 name: data-modeling
-description: "Design dimensional models, entity-relationship diagrams, and warehouse schemas. Use this when you need to model data marts, choose between star and snowflake schema, design fact and dimension tables, define grain, or create an ERD for your analytics layer. Triggers: 'model this data', 'design a schema', 'fact table for', 'dimension table', 'what grain should', 'ERD for'."
+description: "Design dimensional data models, entity-relationship diagrams, and dbt model architecture. Use when planning a new data domain, designing fact and dimension tables, or choosing between modeling approaches. Triggers: 'model my data', 'design data model', 'dimensional modeling', 'entity model', 'star schema design', 'data architecture'."
+triggers:
+  - "model my data"
+  - "design data model"
+  - "dimensional modeling"
+  - "data architecture"
+  - "entity model"
+reads_first:
+  - data-stack-context
+cli_tools:
+  - schema-introspect.js
+  - manifest-parse.js
+produces:
+  - "entity-relationship diagram"
+  - "dbt model SQL stubs"
+  - "schema.yml"
+validates_with:
+  - "dbt compile"
 ---
 
 # Data Modeling
 
 I'll help you design warehouse-optimized data models — fact tables, dimension tables, and marts — tailored to your specific warehouse and reporting needs.
+
+## Before You Start
+
+Gather these before generating model SQL to avoid mismatches with the existing project:
+- `dbt_project.yml` — confirm model paths and default materializations
+- `models/staging/*/schema.yml` and `models/intermediate/*/schema.yml` — understand available columns and existing tests
+- `macros/` directory — check for available macros like `generate_surrogate_key` overrides before generating SQL
+- Run `node tools/clis/schema-introspect.js --help` to introspect your warehouse schema without writing a query
 
 ## Check Context First
 
@@ -252,6 +277,24 @@ models:
               min_value: -10000  # Allow refunds
               max_value: 1000000
 ```
+
+## Verify Your Work
+
+After generating model SQL and schema.yml, confirm the model compiles and appears in lineage:
+
+```bash
+dbt compile
+node tools/clis/manifest-parse.js --manifest target/manifest.json
+```
+
+Check the manifest-parse output to confirm the new model appears with the expected upstream refs. Fix any compilation errors before proceeding to tests.
+
+## If Something Goes Wrong
+
+- **Circular reference error**: A `ref()` in the model points back to a downstream model. Trace the ref() chain and break the cycle — usually by moving shared logic to an intermediate model.
+- **Missing upstream model**: The staging layer model referenced by `ref()` does not exist yet. Check the `models/staging/` directory; run the staging-layer skill first if needed.
+- **Naming collision**: A model with the same name already exists. Run `node tools/clis/manifest-parse.js --manifest target/manifest.json` to list existing model names before finalizing the new model name.
+- **Surrogate key null**: `dbt_utils.generate_surrogate_key()` returns null if any input column is null. Coalesce null-able key columns before passing them to the macro.
 
 ## Common Mistakes to Avoid
 

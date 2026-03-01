@@ -1,11 +1,41 @@
 ---
 name: staging-layer
-description: "Build clean, standardized staging models from raw sources. Use when writing your first dbt models from a source, cleaning and renaming columns, handling source-specific quirks, or setting up source freshness checks. Triggers: 'staging model', 'stg_ model', 'clean source data', 'rename columns from source', 'source freshness', 'standardize raw data'."
+description: "Build dbt staging models (stg_ prefix) that clean and standardize raw source data one-to-one. Use when adding a new source, building the first layer of transformation, or auditing existing staging models. Triggers: 'staging layer', 'staging model', 'stg_ model', 'build staging', 'raw to staging', 'clean source data', 'new source model'."
+triggers:
+  - "staging layer"
+  - "staging model"
+  - "stg_ model"
+  - "build staging"
+  - "raw to staging"
+  - "clean source data"
+reads_first:
+  - data-stack-context
+cli_tools:
+  - schema-introspect.js
+  - manifest-coverage.js
+produces:
+  - "stg_ model SQL"
+  - "sources.yml"
+  - "schema.yml"
+validates_with:
+  - "dbt compile"
+  - "dbt source freshness"
+  - "dbt test --select staging"
 ---
 
 # Staging Layer
 
 I'll help you build clean, consistent staging models — the first dbt transformation layer that converts raw source data into a standardized, well-named foundation.
+
+## Before You Start
+
+Run schema introspection on the raw source before writing SQL to avoid column name surprises:
+
+```bash
+node tools/clis/schema-introspect.js
+```
+
+Also read existing `sources.yml` files under `models/staging/` to avoid duplicate source declarations for tables already registered.
 
 ## Check Context First
 
@@ -296,3 +326,22 @@ dbt run-operation codegen.generate_base_model \
 ```
 
 Review the generated output and apply the naming/casting conventions above.
+
+## Verify Your Work
+
+After generating staging models and sources.yml, run:
+
+```bash
+dbt compile --select staging
+dbt source freshness
+node tools/clis/manifest-coverage.js --manifest target/manifest.json
+```
+
+`dbt compile` catches SQL syntax errors and missing source declarations. `dbt source freshness` validates that `loaded_at_field` is correctly configured. `manifest-coverage.js` confirms staging models have tests attached.
+
+## If Something Goes Wrong
+
+- **Source not found**: `dbt compile` reports "source not found". Confirm the `database` and `schema` in `sources.yml` exactly match the raw schema in your warehouse — check for environment-specific prefixes.
+- **Freshness check fails**: `dbt source freshness` errors on a table. Verify the `loaded_at_field` column exists in the raw table by running `node tools/clis/schema-introspect.js`. Common issue: Fivetran uses `_fivetran_synced`, Airbyte uses `_airbyte_extracted_at`.
+- **Column mismatch after source change**: The source added or dropped columns and the staging model no longer matches. Re-run `schema-introspect.js` to get the current column list, then update the staging model and schema.yml accordingly.
+- **Duplicate source declaration**: `dbt compile` warns about a source already declared. Search existing `sources.yml` files under `models/staging/` for the table name before adding a new source declaration.

@@ -1,15 +1,35 @@
 ---
 name: dashboard-design
-description: "Design effective, accessible dashboards with clear metric hierarchies. Use when planning a new dashboard, reviewing an existing dashboard for improvements, structuring a BI layer, or defining what data a dashboard needs from the analytics layer. Triggers: 'design a dashboard', 'dashboard layout', 'dashboard structure', 'what metrics to show', 'dashboard best practices', 'improve dashboard'."
+description: "Design effective BI dashboards with clear layout, metric hierarchy, and filtering strategy. Use when building a new dashboard, improving an existing one, or establishing dashboard standards. Triggers: 'design dashboard', 'build dashboard', 'BI dashboard', 'dashboard layout', 'visualization', 'reporting dashboard', 'dashboard best practices'."
+triggers:
+  - "design dashboard"
+  - "build dashboard"
+  - "BI dashboard"
+  - "dashboard layout"
+  - "visualization"
+  - "reporting dashboard"
+reads_first:
+  - data-stack-context
+  - kpi-framework
+  - marts-design
+cli_tools: []
+produces:
+  - "dashboard specification"
+  - "BI layer configuration"
+validates_with: []
 ---
 
 # Dashboard Design
 
 I'll help you design dashboards that answer business questions clearly — from layout and metric hierarchy to the underlying data requirements.
 
-## Check Context First
+## Before You Start
 
-Read `.claude/data-stack-context.md`. Key inputs: BI tool, primary consumers (executives, ops, analysts), key metrics.
+- Read `.claude/data-stack-context.md` for BI tool choice and team maturity level.
+- Review existing mart and metrics layer schemas to understand available fields and grain.
+- Confirm KPIs are defined (run `kpi-framework` skill if not).
+- Identify the primary audience and decision this dashboard drives.
+- Check existing dashboards to avoid duplicating work or creating conflicting metrics.
 
 ## Step 1: Clarify the Purpose
 
@@ -47,7 +67,6 @@ A viewer should understand the dashboard's primary message within 5 seconds. Str
 │                                                           │
 │  Revenue Over Time (line chart)  │  Revenue by Segment   │  ← Main trends
 │                                  │  (bar or pie chart)   │
-│                                  │                       │
 ├──────────────────────────────────┴───────────────────────┤
 │  Top Customers Table  │  Recent Orders  │  Support Queue  │  ← Detail tables
 └─────────────────────────────────────────────────────────┘
@@ -73,7 +92,6 @@ A viewer should understand the dashboard's primary message within 5 seconds. Str
 | Relationship between X and Y? | Scatter plot | Line chart |
 | Distribution of a value? | Histogram or box plot | Average alone |
 | Progress toward a goal? | Bullet chart or gauge | Red/green traffic lights alone |
-| Geographic patterns? | Choropleth map | Cartogram |
 | Table of records? | Data table with sorting | Dense pivot table |
 
 ---
@@ -93,7 +111,6 @@ Level 2 — DRIVERS (3-5 metrics that explain the north star)
 
 Level 3 — DIAGNOSTICS (drill-down metrics, shown on click or filter)
   ├─ "Churn by Customer Segment"
-  ├─ "Churn by Plan Type"
   └─ "Top Churned Accounts"
 ```
 
@@ -127,8 +144,6 @@ For dashboard: Revenue Overview
 
 ## Performance Optimization
 
-### Slow Dashboards Kill Adoption
-
 ```sql
 -- Optimize: pre-aggregate to the smallest grain the dashboard needs
 -- Instead of hitting fct_orders (line-item level), hit a daily aggregate
@@ -148,7 +163,7 @@ group by 1  -- Scans 500M rows on every dashboard load
 
 | BI Tool | Caching approach |
 |---------|-----------------|
-| Looker | PDT (Persistent Derived Table) with `datagroup_trigger` |
+| Looker | PDT with `datagroup_trigger` |
 | Metabase | Question caching (Pro); pre-aggregated models |
 | Lightdash | dbt model is the "query"; use incremental models |
 | Tableau | Extracts for large datasets; live for < 10M rows |
@@ -160,8 +175,6 @@ group by 1  -- Scans 500M rows on every dashboard load
 - [ ] Color-blind safe palette (avoid red/green alone; use icons + color)
 - [ ] Minimum 14px font size for labels
 - [ ] Tooltips on all data points
-- [ ] Mobile-responsive layout (if used on phones)
-- [ ] Descriptive alt text on charts (for screen readers)
 - [ ] Consistent date formats (always show year for cross-year data)
 - [ ] "As of" timestamp visible on every dashboard
 
@@ -171,10 +184,26 @@ group by 1  -- Scans 500M rows on every dashboard load
 
 | Antipattern | Problem | Fix |
 |-------------|---------|-----|
-| 20 KPIs in a row | Cognitive overload; nothing stands out | Limit to 5, hide rest behind toggle |
+| 20 KPIs in a row | Cognitive overload | Limit to 5, hide rest behind toggle |
 | Raw counts without context | "1,247 orders" — good or bad? | Always show vs. prior period |
 | Unlinked date filters | KPI shows March, chart shows April | Sync all tiles to global date filter |
 | Pie charts > 5 slices | Unreadable | Bar chart or "Other" bucket |
-| Average without distribution | Hides outliers | Add P50/P90 or box plot |
 | Embedded SQL in BI | No reuse, no testing | Move logic to dbt model |
-| Daily data for YoY trend | Jagged, noisy | Use weekly or monthly rollup |
+
+---
+
+## Verify Your Work
+
+- Open the dashboard in the BI tool and confirm all tiles load without errors.
+- Apply each filter and verify all tiles update consistently to the same time range.
+- Check the "as of" timestamp against the latest dbt run timestamp for the source model.
+- Query the underlying mart directly and spot-check one KPI against what the dashboard shows.
+- Test the dashboard in a non-admin account to confirm no permission errors for intended audience.
+
+## If Something Goes Wrong
+
+- **Dashboard tiles show different time ranges**: check that all tiles reference the same date filter field and that the global filter is wired to each tile.
+- **KPI value differs from a SQL query**: confirm the BI tool measure definition matches the dbt metric definition; watch for off-by-one in date truncation (UTC vs. local).
+- **Dashboard loads slowly (> 5 seconds)**: check if the underlying model is pre-aggregated to the right grain; consider adding a PDT or incremental aggregate model.
+- **Filters return no data**: check that filter values match the actual data values in the mart (case sensitivity, whitespace, enum spelling).
+- **Metric looks wrong after a dbt run**: run `dbt test --select <model>` on the source mart to check for freshness or data quality failures upstream.

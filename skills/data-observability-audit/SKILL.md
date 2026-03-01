@@ -1,6 +1,29 @@
 ---
 name: data-observability-audit
-description: "Audit your data observability setup and recommend improvements. Use when assessing current monitoring coverage, building a data reliability roadmap, after a data incident to improve detection, or onboarding an observability tool. Triggers: 'observability audit', 'monitoring coverage', 'data reliability', 'what are we not monitoring', 'data incident review', 'observability maturity'."
+description: "Audit and improve data observability coverage across your pipeline including monitoring, alerting, freshness, and test coverage gaps. Use when assessing observability maturity, responding to data incidents, or implementing a monitoring strategy. Triggers: 'observability audit', 'data reliability', 'monitor data', 'data health check', 'monitoring coverage', 'data downtime', 'pipeline reliability'."
+triggers:
+  - "observability audit"
+  - "data reliability"
+  - "monitor data"
+  - "data health check"
+  - "monitoring coverage"
+  - "pipeline reliability"
+reads_first:
+  - data-stack-context
+  - anomaly-detection
+  - data-quality-testing
+cli_tools:
+  - manifest-coverage.js
+  - test-results.js
+  - source-freshness.js
+produces:
+  - "observability gap report"
+  - "monitoring configuration"
+  - "alerting rules"
+validates_with:
+  - "dbt test --store-failures"
+  - "node tools/clis/manifest-coverage.js --manifest target/manifest.json"
+  - "node tools/clis/source-freshness.js --results target/sources.json"
 ---
 
 # Data Observability Audit
@@ -10,6 +33,16 @@ I'll audit your current observability setup, identify gaps, and produce a priori
 ## Check Context First
 
 Read `.claude/data-stack-context.md`. Key inputs: observability tool, dbt tests in place, alerting channels, recent incidents.
+
+## Before You Start
+
+Run these three CLI tools first to get a complete picture before recommending changes:
+
+- `node tools/clis/manifest-coverage.js --manifest target/manifest.json` — identify test gaps across all models.
+- `node tools/clis/source-freshness.js --results target/sources.json` — identify stale sources.
+- `node tools/clis/test-results.js --results target/run_results.json` — review recent test failures.
+
+If `target/manifest.json` doesn't exist, run `dbt compile` first to generate it.
 
 ## Observability Maturity Model
 
@@ -240,3 +273,16 @@ After the audit, produce a prioritized plan:
 | % incidents from alerts vs. users | 20% | 90% |
 | False positive alerts/week | - | < 5 |
 ```
+
+## Verify Your Work
+
+- After implementing recommendations, re-run `node tools/clis/manifest-coverage.js --manifest target/manifest.json` to confirm coverage improved.
+- Run `dbt test --store-failures` to see baseline failure rates and persist failing rows for analysis.
+- Compare the before/after coverage percentages to quantify the improvement.
+
+## If Something Goes Wrong
+
+- **Manifest not found**: Run `dbt compile` first to generate `target/manifest.json` before running manifest-coverage.js.
+- **Freshness check errors**: Verify `loaded_at_field` is correctly set in `sources.yml` — it must be a timestamp column that Fivetran or Airbyte populates.
+- **Coverage report shows 0 models**: Check that the `--manifest` path points to the correct file; the path is relative to where you run the command.
+- **Test results file missing**: Run `dbt test` at least once to generate `target/run_results.json` before running test-results.js.

@@ -1,11 +1,35 @@
 ---
 name: data-lineage
-description: "Trace and document data lineage across sources, transformations, and reports. Use when investigating data issues and need to find upstream causes, documenting how a metric is calculated end-to-end, performing impact analysis before changing a model, or setting up lineage tooling. Triggers: 'data lineage', 'where does this data come from', 'impact analysis', 'upstream dependencies', 'lineage graph', 'trace data', 'column lineage'."
+description: "Trace and document data lineage across sources, transformations, and reports using dbt's DAG and exposure definitions. Use when investigating data incidents and need to find upstream root causes, performing impact analysis before refactoring a model, documenting column-level lineage, or setting up cross-system lineage tooling. Produces dbt exposure YAML, impact analysis CLI commands, and lineage documentation."
+triggers:
+  - "trace where this data comes from"
+  - "run an impact analysis before changing a model"
+  - "set up data lineage"
+  - "show me what depends on this model"
+  - "document column lineage"
+reads_first:
+  - data-stack-context
+cli_tools: []
+produces:
+  - "dbt exposures YAML (_exposures.yml)"
+  - "dbt column lineage schema.yml annotations"
+  - "Impact analysis CLI commands"
+validates_with:
+  - "dbt ls --select +<model_name>"
+  - "dbt ls --select <model_name>+"
+  - "dbt docs generate && dbt docs serve"
+  - "dbt source freshness"
 ---
 
 # Data Lineage
 
 I'll help you trace, document, and leverage data lineage — from source systems through transformations to dashboards.
+
+## Before You Start
+
+Read the following files before proceeding:
+
+- `.claude/data-stack-context.md` — dbt project structure, BI tool, and catalog tool (OpenMetadata, Atlan, DataHub, etc.)
 
 ## Check Context First
 
@@ -258,3 +282,31 @@ Salesforce → Fivetran → raw.salesforce.account
 - **DataHub**: LinkedIn OSS; strong cross-platform lineage
 - **Atlan**: Enterprise; native dbt + BI integrations
 - **Monte Carlo**: Observability + lineage hybrid
+
+---
+
+## Verify Your Work
+
+After adding exposures or lineage documentation, verify with:
+
+```bash
+# Confirm upstream lineage resolves correctly for a model
+dbt ls --select "+fct_orders"
+
+# Confirm downstream impact is fully captured
+dbt ls --select "dim_customers+"
+
+# Confirm exposures are parsed and linked correctly
+dbt ls --select "+exposure:revenue_dashboard"
+
+# Regenerate docs and inspect lineage graph visually
+dbt docs generate && dbt docs serve
+```
+
+## If Something Goes Wrong
+
+- **`dbt ls --select "+model_name"` returns only the model itself**: The model has no upstream `ref()` or `source()` calls, or the model name is misspelled — confirm the exact model name with `dbt ls --select model_name` first.
+- **Exposure not appearing in the lineage graph**: Confirm the `_exposures.yml` file is inside a directory that dbt scans (i.e., under `models/`) and that `depends_on` entries use `ref()` syntax matching exact model names.
+- **`dbt build --select "model+"` rebuilding too many models**: Use `dbt ls --select "model+"` first to preview the full downstream set before running; use `dbt build --select "1+model+1"` to limit to direct parents and children only.
+- **OpenLineage events not emitting**: Confirm `openlineage-dbt` is installed in the same Python environment as dbt and that the `OPENLINEAGE_URL` environment variable is set; the integration requires dbt 1.0+ and the adapter must support it.
+- **Column lineage in YAML not reflected in catalog tool**: Most catalog tools (OpenMetadata, Atlan) ingest column lineage from the `meta.source_columns` field only if their connector is configured to read `meta` fields; verify the connector's `includeTags: true` or equivalent setting is enabled.

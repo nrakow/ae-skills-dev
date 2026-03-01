@@ -1,11 +1,34 @@
 ---
 name: data-catalog
-description: "Implement and maintain a data catalog with metadata and documentation. Use when setting up discovery tooling, improving data documentation coverage, integrating dbt docs with a catalog, or building a data dictionary for stakeholders. Triggers: 'data catalog', 'data discovery', 'dbt docs', 'document data', 'metadata management', 'data dictionary', 'find data'."
+description: "Implement and maintain a data catalog with metadata, documentation, and discovery tooling. Use when setting up dbt docs or an external catalog tool, improving documentation coverage across models, building a data dictionary for stakeholders, or integrating dbt artifacts with OpenMetadata or Atlan. Produces dbt YAML documentation, an overview page, and catalog connector configuration."
+triggers:
+  - "set up a data catalog"
+  - "document my dbt models"
+  - "improve data discovery"
+  - "generate dbt docs"
+  - "build a data dictionary"
+reads_first:
+  - data-stack-context
+cli_tools: []
+produces:
+  - "dbt schema.yml model and column descriptions"
+  - "dbt docs overview page (docs/overview.md)"
+  - "OpenMetadata connector YAML config"
+validates_with:
+  - "dbt docs generate"
+  - "dbt compile"
+  - "dbt test --select tag:documented"
 ---
 
 # Data Catalog
 
 I'll help you implement a data catalog that makes your analytics layer discoverable, documented, and trustworthy.
+
+## Before You Start
+
+Read the following files before proceeding:
+
+- `.claude/data-stack-context.md` — existing catalog tool, dbt project structure, team size, and compliance requirements
 
 ## Check Context First
 
@@ -246,3 +269,44 @@ group by model_layer
 - Review entire catalog for stale entries
 - Update data domain ownership
 - Review glossary terms for accuracy
+
+---
+
+## Verify Your Work
+
+After updating documentation and generating the catalog, verify with:
+
+```bash
+# Regenerate the docs site and confirm it compiles without errors
+dbt docs generate
+
+# Confirm all models compile (catches broken refs in YAML)
+dbt compile
+
+# Check freshness of source documentation
+dbt source freshness
+```
+
+```bash
+# Count undocumented mart models (should be 0 before merging)
+python3 -c "
+import json
+manifest = json.load(open('target/manifest.json'))
+undocumented = [
+    n for n, v in manifest['nodes'].items()
+    if v.get('resource_type') == 'model'
+    and v.get('config', {}).get('materialized') in ('table', 'view', 'incremental')
+    and 'marts' in v.get('fqn', [])
+    and not v.get('description', '').strip()
+]
+print(f'{len(undocumented)} undocumented mart models:', undocumented)
+"
+```
+
+## If Something Goes Wrong
+
+- **`dbt docs generate` fails with a missing catalog error**: Run `dbt run` first to materialize models before generating docs; the catalog is built by inspecting the warehouse, so models must exist as physical tables or views.
+- **Column descriptions not appearing in generated docs**: Confirm the YAML file is in the correct `models/` subdirectory and that the `columns:` block is nested under the correct model name with exact case matching.
+- **OpenMetadata connector fails to ingest**: Verify that all three artifact paths (`catalog.json`, `manifest.json`, `run_results.json`) point to the same dbt target run; mixing artifacts from different runs causes ingestion failures.
+- **Documentation coverage not improving despite YAML updates**: The coverage query reads from your catalog tool's metadata tables, which are only updated after a successful ingestion run — re-run the connector after adding descriptions.
+- **`dbt docs serve` shows stale data**: The served docs reflect the last `dbt docs generate` output; re-run `dbt docs generate` to pick up new descriptions before serving or deploying.
