@@ -1,298 +1,81 @@
 ---
 name: data-modeling
-description: "Design dimensional models, entity-relationship diagrams, and warehouse schemas. Use this when you need to model data marts, choose between star and snowflake schema, design fact and dimension tables, define grain, or create an ERD for your analytics layer. Triggers: 'model this data', 'design a schema', 'fact table for', 'dimension table', 'what grain should', 'ERD for'."
+description: "Design dimensional models, ERDs, and dbt-ready analytics schemas with strict grain, DAG checks, and warehouse-specific SQL. Use when users ask to model marts, define fact/dimension tables, or choose star vs snowflake patterns. Triggers: 'design schema', 'model this data', 'define grain', 'build fact table'."
 ---
 
-# Data Modeling
+# 🧠 Context & Prerequisites
+You are designing analytics models that sit inside a dependency graph, not standalone SQL scripts. You must lock grain first, then map upstream dependencies, then pick warehouse-specific syntax. Default to maintainable star schemas unless explicit constraints require alternatives. Always produce lineage-compatible dbt artifacts (SQL + YAML + tests).
 
-I'll help you design warehouse-optimized data models — fact tables, dimension tables, and marts — tailored to your specific warehouse and reporting needs.
+# 🔍 Step 1: Context Gathering (MANDATORY)
+Before writing any model SQL, run these commands in the repo and summarize findings.
 
-## Check Context First
-
-Read `.claude/data-stack-context.md` if it exists. If not, ask: Which warehouse (Snowflake / BigQuery / Databricks / Redshift / DuckDB)?
-
-## Step 1: Clarify the Business Process
-
-Before drawing any tables, answer:
-
-1. **What business process are we modeling?** (Orders, sessions, subscriptions, support tickets, etc.)
-2. **What is the grain?** One row = one ___? (order, order-line-item, daily session, etc.)
-3. **Who will query this?** (Analysts building dashboards, data scientists, BI tool)
-4. **What are the key metrics?** (Revenue, count of events, duration, etc.)
-5. **What dimensions slice those metrics?** (Date, customer, product, geography, etc.)
-
-## Step 2: Choose a Schema Pattern
-
-### Star Schema (Default)
-Use when: denormalized queries, BI tools, Snowflake/BigQuery/Redshift.
-
-```
-fct_orders
-├── order_id (PK)
-├── customer_key (FK → dim_customers)
-├── product_key (FK → dim_products)
-├── date_key (FK → dim_dates)
-├── order_amount
-└── quantity
-
-dim_customers (denormalized — no separate dim_geographies)
-├── customer_key (PK surrogate)
-├── customer_id (NK natural key)
-├── customer_name
-├── country, region, city
-└── customer_segment
+```bash
+[ -f .claude/data-stack-context.md ] && sed -n '1,220p' .claude/data-stack-context.md
+sed -n '1,260p' dbt_project.yml
+rg -n "source\(|ref\(" models/ macros/ seeds/
+rg -n "(fct_|dim_|mart_)" models/
 ```
 
-### Snowflake Schema
-Use when: storage optimization required, high-cardinality dimensions with shared sub-dimensions.
+Then define explicitly:
+1. **Warehouse + dialect** from `.claude/data-stack-context.md`. If missing, instruct the user to run `/data-stack-context` before SQL generation.
+2. **Business process + grain** (one row per what).
+3. **Upstream dependencies** (raw sources/staging models).
+4. **Downstream consumers** (marts, tests, dashboards, exposures).
+5. **Cost risks** (full scans, wide joins, unbounded windows, large sorts).
 
-```
-dim_customers → dim_regions → dim_countries
-```
+You are forbidden from generating SQL until these five items are documented.
 
-**Recommendation**: Default to star schema. Only snowflake if dimension tables exceed 50M+ rows and storage is constrained.
+# 🛠️ Step 2: Execution Rules & Syntax
+Use this execution order every time:
 
-## Step 3: Define the Fact Table
+1. **Design contract first**
+   - Declare model grain in one sentence.
+   - List primary key/surrogate key strategy.
+   - Identify additive vs semi-additive metrics.
+2. **Build model SQL**
+   - Use explicit CTE stages (`source`, `cleaned`, `enriched`, `final`).
+   - Use `{{ ref() }}` and `{{ source() }}` only; never hardcode production schemas.
+   - Add cost controls (date filters for incremental windows, selective columns, avoid `select *` in final model).
+3. **Create lineage-compatible YAML**
+   - Add model description and column descriptions.
+   - Add `not_null` and `unique` tests for model key columns.
+   - Add relationship tests for key foreign keys.
+4. **Document tradeoffs**
+   - Explain why chosen schema pattern is preferred and what was rejected.
 
-### Fact Table Template
+- **Warehouse Specifics:**
+  - **Snowflake:** Prefer `QUALIFY` for window filtering, `CLUSTER BY` on high-selectivity filter columns, and semi-structured helpers (`FLATTEN`) when needed.
+  - **BigQuery:** Use `PARTITION BY DATE(<timestamp>)` for large facts, `CLUSTER BY` join/filter columns, and native `STRUCT/ARRAY` handling.
+  - **Databricks:** Use Delta configs, partition thoughtfully, and add `OPTIMIZE ... ZORDER BY (...)` where justified.
+  - **Redshift:** Set `DISTKEY/SORTKEY` based on dominant join/filter paths; avoid data redistribution-heavy joins.
+  - **DuckDB:** Favor local-file-aware patterns and avoid warehouse-specific DDL not supported by DuckDB.
 
-```sql
--- fct_orders: grain = one row per order line item
--- Additive measures: revenue, quantity (sum across any dimension)
--- Semi-additive: account_balance (sum across products, not dates)
--- Non-additive: unit_price (average, not sum)
+# ✅ Step 3: Validation Phase (MANDATORY CLI COMMANDS)
+You must not mark the task complete until all relevant commands pass. If any fail, fix code and rerun.
 
-select
-    -- Surrogate keys (hashed or sequence)
-    {{ dbt_utils.generate_surrogate_key(['order_id', 'line_item_id']) }} as order_line_key,
+```bash
+# Replace selectors/paths with the target model
+dbt compile --select <model_name_or_path>
+dbt test --select <model_name_or_path>
 
-    -- Foreign keys to dimensions
-    customer_key,
-    product_key,
-    date_key,
-
-    -- Natural/business keys (for debugging)
-    order_id,
-    line_item_id,
-
-    -- Degenerate dimensions (no separate dim table needed)
-    order_status,
-    payment_method,
-
-    -- Measures
-    unit_price,
-    quantity,
-    discount_amount,
-    unit_price * quantity - discount_amount as net_revenue,
-
-    -- Timestamps
-    ordered_at,
-    shipped_at,
-    delivered_at
-
-from {{ ref('stg_orders') }}
+# Run when SQL files were edited and sqlfluff is configured
+sqlfluff lint models/path/to/<model_file>.sql
 ```
 
-### Fact Table Types
+For broad changes, run:
 
-| Type | Example | When to use |
-|------|---------|-------------|
-| **Transaction** | fct_orders | Each row = discrete event |
-| **Periodic snapshot** | fct_daily_inventory | One row per entity per period |
-| **Accumulating snapshot** | fct_order_lifecycle | Track multi-stage processes |
-
-## Step 4: Define Dimension Tables
-
-### SCD Type 1 (Overwrite — default for most dims)
-
-```sql
--- dim_customers: SCD Type 1
--- Use when historical values don't matter (e.g., email corrections)
-
-select
-    {{ dbt_utils.generate_surrogate_key(['customer_id']) }} as customer_key,
-    customer_id,
-    customer_name,
-    email,
-    customer_segment,
-    country,
-    region,
-    city,
-    created_at,
-    updated_at
-
-from {{ ref('stg_customers') }}
+```bash
+dbt build --select <model_name_or_path>+
 ```
 
-### SCD Type 2 (Track history — for slowly changing attributes)
+Completion criteria:
+- Compilation passes with no SQL/Jinja errors.
+- Tests pass for key constraints and relationships.
+- Lint passes (or explicit, justified suppressions are documented).
 
-```sql
--- dim_customers_history: SCD Type 2
--- Use when historical values matter (e.g., customer segment changes)
-
-select
-    {{ dbt_utils.generate_surrogate_key(['customer_id', 'dbt_scd_id']) }} as customer_key,
-    customer_id,
-    customer_segment,
-    -- Validity window
-    dbt_valid_from,
-    dbt_valid_to,
-    dbt_is_deleted,
-    -- Current record flag
-    (dbt_valid_to is null) as is_current
-
-from {{ ref('snapshot_customers') }}
-```
-
-Use [dbt snapshots](https://docs.getdbt.com/docs/build/snapshots) for SCD Type 2.
-
-### Date Dimension
-
-Always use a spine-based date dimension — never generate dates in fact queries:
-
-```sql
--- dim_dates: generated via dbt_utils date_spine
--- Range: 5 years back, 2 years forward from today
-
-with date_spine as (
-    {{ dbt_utils.date_spine(
-        datepart="day",
-        start_date="cast('2019-01-01' as date)",
-        end_date="cast('2027-12-31' as date)"
-    ) }}
-)
-select
-    cast(date_day as date) as date_key,
-    extract(year from date_day) as year,
-    extract(quarter from date_day) as quarter,
-    extract(month from date_day) as month_number,
-    format_date('%B', date_day) as month_name,  -- BigQuery
-    -- format('%B', date_day) in Snowflake: monthname(date_day)
-    extract(week from date_day) as iso_week,
-    extract(dayofweek from date_day) as day_of_week,
-    (extract(dayofweek from date_day) in (1, 7)) as is_weekend,
-    -- Fiscal periods (adjust offsets for your fiscal year)
-    date_add(date_day, interval 3 month) as fiscal_date,
-    extract(year from date_add(date_day, interval 3 month)) as fiscal_year,
-    extract(quarter from date_add(date_day, interval 3 month)) as fiscal_quarter
-
-from date_spine
-```
-
-## Step 5: Warehouse-Specific Optimizations
-
-### Snowflake
-```sql
--- Cluster fact tables on high-cardinality filter columns
-alter table fct_orders cluster by (ordered_at::date, customer_key);
-
--- Use automatic clustering for tables > 1TB
-alter table fct_orders enable automatic clustering;
-```
-
-### BigQuery
-```sql
--- Partition + cluster (BigQuery partitioning is mandatory for large tables)
-{{ config(
-    partition_by={
-        "field": "ordered_at",
-        "data_type": "timestamp",
-        "granularity": "day"
-    },
-    cluster_by=["customer_key", "product_key"]
-) }}
-```
-
-### Databricks (Delta Lake)
-```sql
-{{ config(
-    file_format='delta',
-    partition_by=['ordered_date'],
-    post_hook="OPTIMIZE {{ this }} ZORDER BY (customer_key, product_key)"
-) }}
-```
-
-### Redshift
-```sql
-{{ config(
-    dist='customer_key',      -- distkey: join column used most
-    sort=['ordered_at']       -- sortkey: most common filter
-) }}
-```
-
-## Step 6: dbt YAML Documentation
-
-Always document every model and column:
-
-```yaml
-models:
-  - name: fct_orders
-    description: "One row per order line item. Primary source of truth for revenue reporting."
-    config:
-      contract:
-        enforced: true
-    columns:
-      - name: order_line_key
-        description: "Surrogate key: hash of order_id + line_item_id"
-        data_tests:
-          - unique
-          - not_null
-      - name: customer_key
-        description: "FK to dim_customers"
-        data_tests:
-          - not_null
-          - relationships:
-              to: ref('dim_customers')
-              field: customer_key
-      - name: net_revenue
-        description: "unit_price × quantity − discount_amount. Additive."
-        data_tests:
-          - not_null
-          - dbt_utils.accepted_range:
-              min_value: -10000  # Allow refunds
-              max_value: 1000000
-```
-
-## Common Mistakes to Avoid
-
-- **Wrong grain**: Mixing order-level and line-item-level in one fact table — split into two facts
-- **Measures in dimensions**: Don't put `lifetime_value` in `dim_customers` — compute it in a mart
-- **Missing surrogate keys**: Always use surrogate keys; natural keys change over time
-- **No date spine**: Avoid `generate_series` in live queries; pre-build `dim_dates`
-- **Over-normalized**: Don't create `dim_cities → dim_regions → dim_countries` for 3 rows each
-
-## Common AI Failure Modes
-
-Specific mistakes AI assistants frequently make when generating dimensional models:
-
-### 1. "Kitchen Sink" Tables
-Combining events, users, revenue, and products into a single wide table. Destroys governance and makes grain undefinable. Separate concerns into distinct facts and dimensions.
-
-### 2. Implicit Grain Explosion
-Joining sessions → users → orders without checking cardinality. A single M:M join silently multiplies rows. Always validate with a fanout check before committing:
-```sql
-SELECT
-    COUNT(*) AS total_rows,
-    COUNT(DISTINCT primary_key) AS distinct_keys,
-    COUNT(*) / COUNT(DISTINCT primary_key) AS fanout_ratio
-FROM {{ ref('your_model') }}
-HAVING fanout_ratio > 1.001
-```
-
-### 3. Natural Key Drift
-Source systems reassign IDs over time. Without surrogate keys, metric corruption is silent and irreversible. Always use `dbt_utils.generate_surrogate_key()`.
-
-### 4. `SELECT DISTINCT` to Hide Fanout
-Adding `DISTINCT` to hide a join cardinality bug masks the root cause and produces wrong aggregations. Fix the join logic instead.
-
-### 5. Snapshot Misuse
-Using raw `dbt snapshot` output directly as a dimension. Snapshots are raw history — always build a `dim_*_history.sql` on top with `valid_from`, `valid_to`, `is_current`.
-
-## Output Checklist
-
-I'll produce:
-- [ ] ERD diagram (Mermaid or text-based)
-- [ ] Fact table DDL / dbt model skeleton
-- [ ] Dimension table DDL / dbt model skeleton
-- [ ] dbt YAML with column-level docs and tests
-- [ ] Warehouse-specific config (partition, cluster, dist/sort)
+# 🚨 Common Pitfalls (Self-Correction Guardrails)
+- Do not write model SQL before identifying upstream `ref()`/`source()` dependencies.
+- Do not mix warehouse dialects (for example, Snowflake syntax inside BigQuery models).
+- Do not leave grain ambiguous; if grain is unclear, pause and resolve before coding.
+- Do not ship model changes without YAML docs and key tests.
+- Do not run only `dbt run`; compile and test are mandatory minimum gates.

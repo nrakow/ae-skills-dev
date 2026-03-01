@@ -32,54 +32,106 @@ Every skill requires a `SKILL.md` file with valid YAML frontmatter:
 ```markdown
 ---
 name: your-skill-name
-description: "A concise description of what this skill does. Include trigger phrases users might say, such as 'help me build a staging layer' or 'set up incremental models'. Max 1024 characters."
+description: "Action-oriented description. Include trigger phrases and concrete use-cases."
 ---
 
-## Overview
+# 🧠 Context & Prerequisites
+[Brief concept context in <=5 lines]
 
-Brief introduction to what this skill helps with.
+# 🔍 Step 1: Context Gathering (MANDATORY)
+[Required commands to inspect `.claude/data-stack-context.md`, `dbt_project.yml`, and DAG dependencies before writing SQL]
 
-## Usage
+# 🛠️ Step 2: Execution Rules & Syntax
+[Strict implementation rules and output format]
+- **Warehouse Specifics:** [Snowflake / BigQuery / Databricks / Redshift / DuckDB differences]
 
-How to invoke this skill and what to expect.
+# ✅ Step 3: Validation Phase (MANDATORY CLI COMMANDS)
+[Exact commands. Agent must fix failures and rerun until passing before final response]
 
-## Examples
-
-Concrete examples with SQL snippets, YAML configs, or step-by-step instructions.
+# 🚨 Common Pitfalls (Self-Correction Guardrails)
+- [2-5 explicit failure modes to prevent]
 ```
 
 **Frontmatter requirements:**
 - `name`: 1-64 characters, must exactly match the directory name
 - `description`: 1-1024 characters; include trigger phrases and use cases
 
-### 4. Follow Content Guidelines
+### 4. Mandatory Execution Contract for All Skills
+
+All skills that create or modify models **must** enforce this behavior:
+
+1. **DAG-aware first pass (mandatory):**
+   - Read `.claude/data-stack-context.md` if present.
+   - Inspect `dbt_project.yml` model routing before edits.
+   - Discover upstream and downstream dependencies using terminal commands before writing SQL.
+2. **Dialect lock (mandatory):**
+   - Select SQL syntax based on the target warehouse.
+   - Do not output generic SQL when warehouse-specific optimized syntax exists.
+3. **Autonomous validation loop (mandatory):**
+   - Run required commands.
+   - If any command fails, fix the issue, rerun, and repeat until pass.
+   - Do not present final output as complete while checks are failing.
+
+### 5. Reusable DAG Discovery Checklist (Copy Into Modeling Skills)
+
+```bash
+# Required context and DAG discovery
+[ -f .claude/data-stack-context.md ] && sed -n '1,200p' .claude/data-stack-context.md
+sed -n '1,240p' dbt_project.yml
+rg -n "source\(|ref\(" models/ macros/ seeds/
+
+# Optional if target model path/name is known
+rg -n "ref\('<target_model>'\)" models/ tests/ exposures/
+rg -n "source\('<source_name>'" models/
+```
+
+### 6. Validation Command Matrix (Copy and Scope Per Skill)
+
+```bash
+# Minimum required for SQL/model edits
+dbt compile --select <target_selector>
+dbt test --select <target_selector>
+
+# Required when SQL files are modified (if sqlfluff configured)
+sqlfluff lint models/path/to/<target>.sql
+
+# Optional integration gate for larger changes
+dbt build --select <target_selector>
+```
+
+Use scoped selectors (model name, path, tag) to control cost and runtime. For warehouse-heavy models, prefer narrow selectors first, then broader builds.
+
+### 7. Follow Content Guidelines
 
 - Maximum 500 lines per SKILL.md; move lengthy SQL patterns to a `references/` subdirectory within the skill directory
-- Use H2 (`##`) and H3 (`###`) headers only — never H1
+- Use H2 (`##`) and H3 (`###`) headers only where possible; reserve stronger headings only when required by the standard template
 - Keep paragraphs to 2-4 sentences
 - Use bold (`**text**`) for key terms on first use
 - Write in direct, second-person tone: "I'll help you..." or "You should..."
 - Be opinionated: provide recommended patterns, not just a list of options
 
-### 5. Quality Checklist
+### 8. Quality Checklist
 
 Before submitting, verify your skill:
 
+- [ ] Uses the standardized 5-section architecture
 - [ ] References `.claude/data-stack-context.md` and reads it if present
 - [ ] Suggests running `data-stack-context` first if context file is absent
+- [ ] Includes explicit DAG discovery commands before SQL authoring
 - [ ] Is dialect-aware: handles Snowflake, BigQuery, Databricks, Redshift, and DuckDB differences where SQL is generated
 - [ ] Treats compute cost as a first-class concern: flags expensive operations, recommends clustering/partitioning, suggests incremental over full refresh
+- [ ] Includes mandatory CLI validation commands and rerun-on-fail behavior
 - [ ] Outputs lineage-compatible artifacts where applicable (dbt YAML with descriptions, source freshness checks)
 - [ ] Frontmatter `name` matches the directory name exactly
 - [ ] Description is under 1024 characters and includes trigger phrases
 - [ ] SKILL.md is under 500 lines
 
-### 6. Register the Skill in VERSIONS.md
+### 9. Register the Skill in VERSIONS.md
 
-Add a row to the Skills table in `VERSIONS.md`:
+Add or update the row in the Skills table in `VERSIONS.md`:
 
 ```markdown
-| your-skill-name | 1.0.0 | YYYY-MM-DD | Initial release |
+| your-skill-name | 1.1.0 | YYYY-MM-DD | Migrated to standardized template with mandatory DAG + validation workflow |
 ```
 
 ---
@@ -202,11 +254,13 @@ docs: update data-contracts SKILL.md with v2 contract format
 - [ ] Documentation fix
 
 ## Checklist
-- [ ] Skill name matches directory name and VERSIONS.md entry
+- [ ] Standardized 5-section SKILL architecture used (if skill change)
 - [ ] VERSIONS.md updated with new version and date
 - [ ] Skill references data-stack-context
+- [ ] DAG discovery instructions included for model changes
 - [ ] Dialect-aware SQL (if applicable)
 - [ ] Cost considerations addressed (if applicable)
+- [ ] Mandatory validation loop commands included
 - [ ] Lineage-compatible artifacts (if applicable)
 - [ ] SKILL.md is under 500 lines
 ```

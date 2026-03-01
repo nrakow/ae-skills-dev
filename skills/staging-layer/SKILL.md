@@ -1,298 +1,86 @@
 ---
 name: staging-layer
-description: "Build clean, standardized staging models from raw sources. Use when writing your first dbt models from a source, cleaning and renaming columns, handling source-specific quirks, or setting up source freshness checks. Triggers: 'staging model', 'stg_ model', 'clean source data', 'rename columns from source', 'source freshness', 'standardize raw data'."
+description: "Build dbt staging models from raw sources with strict DAG discovery, naming conventions, and warehouse-aware cleaning logic. Use when users ask for stg_ models, source standardization, or first-layer transformations. Triggers: 'build staging model', 'clean raw table', 'create stg model'."
 ---
 
-# Staging Layer
+# 🧠 Context & Prerequisites
+Staging models are the contract between raw ingestion and downstream marts. Your goal is to standardize shape, naming, and types while preserving source fidelity and lineage. Keep staging transformations lightweight, deterministic, and reusable. Avoid embedding business logic that belongs in marts.
 
-I'll help you build clean, consistent staging models — the first dbt transformation layer that converts raw source data into a standardized, well-named foundation.
-
-## Check Context First
-
-Read `.claude/data-stack-context.md`. Key inputs: warehouse, ingestion tool (Fivetran, Airbyte), raw schema names.
-
-## Staging Layer Principles
-
-Staging models follow strict rules:
-1. **One staging model per source table** — 1:1 mapping, never join sources in staging
-2. **Only `source()` references** — never `ref()` to other models
-3. **Rename and recast only** — no business logic, no filtering, no aggregation
-4. **Materialize as views** — staging is cheap and should be transparent
-5. **Prefix**: `stg_<source_name>__<table_name>` (double underscore separates source from table)
-
-## File Organization
-
-```
-models/staging/
-├── salesforce/
-│   ├── _salesforce__sources.yml      # source() declarations
-│   ├── _salesforce__models.yml       # staging model docs + tests
-│   ├── stg_salesforce__accounts.sql
-│   └── stg_salesforce__opportunities.sql
-└── stripe/
-    ├── _stripe__sources.yml
-    ├── _stripe__models.yml
-    └── stg_stripe__charges.sql
-```
-
-## Source Declaration Template
-
-```yaml
-# models/staging/salesforce/_salesforce__sources.yml
-version: 2
-
-sources:
-  - name: salesforce
-    description: "Salesforce CRM data loaded by Fivetran"
-    database: "{{ env_var('RAW_DATABASE', 'raw') }}"
-    schema: salesforce
-    loaded_at_field: _fivetran_synced
-    freshness:
-      warn_after: {count: 24, period: hour}
-      error_after: {count: 48, period: hour}
-
-    tables:
-      - name: account
-        identifier: account   # actual table name if different from name
-        description: "Salesforce Account object (companies)"
-        columns:
-          - name: id
-            description: "Salesforce Account ID (18-char)"
-            data_tests:
-              - unique
-              - not_null
-
-      - name: opportunity
-        description: "Salesforce Opportunity object (deals)"
-        freshness:
-          warn_after: {count: 12, period: hour}
-        columns:
-          - name: id
-            data_tests:
-              - unique
-              - not_null
-```
-
-## Staging Model Template
-
-```sql
--- models/staging/salesforce/stg_salesforce__accounts.sql
--- One row per Salesforce Account
--- No joins, no aggregations, no business logic
-
-with
-
-source as (
-
-    select * from {{ source('salesforce', 'account') }}
-
-),
-
-renamed as (
-
-    select
-        -----------------------------------------------------------------------
-        -- IDs
-        -----------------------------------------------------------------------
-        id as account_id,
-        owner_id as owner_salesforce_id,
-        parent_id as parent_account_id,
-
-        -----------------------------------------------------------------------
-        -- Attributes
-        -----------------------------------------------------------------------
-        name as account_name,
-        type as account_type,
-        industry,
-        number_of_employees,
-        annual_revenue,
-        website,
-
-        -----------------------------------------------------------------------
-        -- Address
-        -----------------------------------------------------------------------
-        billing_street,
-        billing_city,
-        billing_state,
-        billing_postal_code,
-        billing_country,
-
-        -----------------------------------------------------------------------
-        -- Booleans (standardize to true/false)
-        -----------------------------------------------------------------------
-        (type = 'Customer') as is_customer,
-        (is_deleted = '1' or is_deleted = 'true') as is_deleted,
-
-        -----------------------------------------------------------------------
-        -- Timestamps (cast to consistent timezone)
-        -----------------------------------------------------------------------
-        cast(created_date as timestamp) as created_at,
-        cast(last_modified_date as timestamp) as updated_at,
-        _fivetran_synced
-
-    from source
-    -- Exclude soft-deleted records in staging (or keep and filter downstream)
-    -- where not is_deleted
-
-)
-
-select * from renamed
-```
-
-## Common Source-Specific Patterns
-
-### Fivetran Sources
-
-```sql
--- Fivetran adds _fivetran_synced, _fivetran_deleted, _fivetran_id columns
--- Always preserve _fivetran_synced for freshness checks
-
-with source as (
-    select * from {{ source('salesforce', 'account') }}
-    -- Exclude Fivetran-deleted records
-    where not coalesce(_fivetran_deleted, false)
-),
-```
-
-### Airbyte Sources
-
-```sql
--- Airbyte adds _airbyte_raw_id, _airbyte_extracted_at, _airbyte_meta columns
--- Deduplicate using _airbyte_raw_id for the latest record
-
-with source as (
-    select * from {{ source('salesforce', 'account') }}
-    qualify row_number() over (
-        partition by id
-        order by _airbyte_extracted_at desc
-    ) = 1  -- Snowflake QUALIFY
-    -- BigQuery: use a CTE with row_number() and filter where rn = 1
-),
-```
-
-### Stripe / Payment Sources
-
-```sql
--- Stripe amounts are in cents — convert to dollars in staging
-select
-    id as charge_id,
-    amount / 100.0 as amount_usd,              -- cents → dollars
-    amount_refunded / 100.0 as refunded_usd,
-    currency,
-    (currency = 'usd') as is_usd,
-    -- Stripe timestamps are Unix epoch integers
-    to_timestamp(created) as created_at,       -- Snowflake
-    -- timestamp_seconds(created) as created_at  -- BigQuery
-    status as charge_status,
-    (status = 'succeeded') as is_succeeded
-```
-
-### Boolean Standardization
-
-```sql
--- Source systems use inconsistent boolean representations
--- Standardize to SQL boolean in staging
-
--- Salesforce: 'true'/'false' strings
-(is_closed = 'true') as is_closed,
-
--- MySQL: 0/1 integers
-(is_active = 1) as is_active,
-
--- Excel/CSV: 'Yes'/'No'
-(approved = 'Yes') as is_approved,
-
--- Snowflake-friendly coalesce pattern:
-coalesce(try_cast(is_deleted as boolean), false) as is_deleted
-```
-
-### Timestamp Standardization
-
-```sql
--- Always normalize to UTC in staging
-
--- Unix epoch (Stripe, many APIs):
-to_timestamp(created_at_epoch) as created_at           -- Snowflake
-timestamp_seconds(created_at_epoch) as created_at      -- BigQuery
-from_unixtime(created_at_epoch) as created_at          -- Databricks/Spark
-
--- Snowflake: convert TZ-aware string to UTC
-convert_timezone('UTC', created_at::timestamp_tz)::timestamp_ntz as created_at
-
--- BigQuery: normalize to UTC
-datetime(created_at, 'America/New_York') at time zone 'UTC'
-
--- Redshift: AT TIME ZONE
-convert_timezone('EST', 'UTC', created_at)
-```
-
-## Staging Model YAML Docs
-
-```yaml
-# models/staging/salesforce/_salesforce__models.yml
-version: 2
-
-models:
-  - name: stg_salesforce__accounts
-    description: |
-      One row per Salesforce Account. Cleaned and renamed from the raw
-      `salesforce.account` table. Excludes Fivetran-deleted records.
-    config:
-      materialized: view
-      contract:
-        enforced: false  # Relax contracts on staging views
-    columns:
-      - name: account_id
-        description: "Primary key: Salesforce 18-char Account ID"
-        data_tests:
-          - unique
-          - not_null
-      - name: account_name
-        description: "Company name"
-        data_tests:
-          - not_null
-      - name: is_customer
-        description: "True if Account type = 'Customer'"
-      - name: created_at
-        description: "UTC timestamp of Account creation in Salesforce"
-        data_tests:
-          - not_null
-      - name: _fivetran_synced
-        description: "UTC timestamp of last Fivetran sync"
-```
-
-## What NOT to Do in Staging
-
-```sql
--- ❌ DON'T: Join two sources
-from {{ source('salesforce', 'account') }} a
-join {{ source('salesforce', 'user') }} u on a.owner_id = u.id
-
--- ❌ DON'T: Apply business logic or filters
-where account_type = 'Customer'  -- This is a business rule — do it in intermediate/marts
-
--- ❌ DON'T: Reference other staging models
-from {{ ref('stg_salesforce__accounts') }}  -- staging should only use source()
-
--- ❌ DON'T: Aggregate
-group by account_type  -- Aggregation goes in intermediate or marts
-
--- ❌ DON'T: Name columns with business context
-account_arr  -- ARR is a business metric, not a source column
-```
-
-## Codegen — Auto-Generate Staging Models
-
-Use the `dbt-labs/codegen` package to scaffold staging models from source:
+# 🔍 Step 1: Context Gathering (MANDATORY)
+Before writing SQL, inspect stack context and DAG usage.
 
 ```bash
-# Generate source YAML from existing tables
-dbt run-operation codegen.generate_source \
-  --args '{"schema_name": "salesforce", "generate_columns": true}'
-
-# Generate staging model SQL from a source table
-dbt run-operation codegen.generate_base_model \
-  --args '{"source_name": "salesforce", "table_name": "account"}'
+[ -f .claude/data-stack-context.md ] && sed -n '1,220p' .claude/data-stack-context.md
+sed -n '1,260p' dbt_project.yml
+rg -n "source\(" models/
+rg -n "ref\('stg_" models/ tests/ exposures/
+rg -n "staging|stg_" models/
 ```
 
-Review the generated output and apply the naming/casting conventions above.
+Then capture:
+1. Warehouse dialect and typing nuances.
+2. Raw source table(s) and freshness/testing requirements.
+3. Existing downstream dependencies on `stg_` outputs.
+4. Required naming conventions for columns and models.
+5. Cost-sensitive constraints (partition pruning, selective projection, incremental landing if needed).
+
+If `.claude/data-stack-context.md` is absent, instruct the user to run `/data-stack-context` first.
+
+# 🛠️ Step 2: Execution Rules & Syntax
+Implement staging models with these rules:
+
+1. **Model pattern**
+   - Model name: `stg_<source>__<entity>`.
+   - CTE flow: `source_data` -> `renamed` -> `typed` -> `final`.
+2. **Transformation scope**
+   - Allowed: renaming, casting, null normalization, dedupe keys, light JSON flattening, timestamp normalization.
+   - Not allowed: business KPI logic, attribution, cross-domain joins unless required for source integrity.
+3. **Naming + docs**
+   - Normalize columns to `snake_case`.
+   - Keep semantic names stable and explicit.
+   - Add dbt YAML model + column descriptions and source freshness/tests.
+4. **Cost controls**
+   - Select only needed columns.
+   - Avoid repeated expensive parsing expressions by staging once.
+   - For very large raw tables, ensure partition/date filters are compatible with ingestion strategy.
+
+- **Warehouse Specifics:**
+  - **Snowflake:** Use `TRY_TO_*` casts and `QUALIFY` for deterministic dedupe.
+  - **BigQuery:** Use `SAFE_CAST`, leverage partition filters, and handle nested fields with `UNNEST` carefully.
+  - **Databricks:** Use Delta-friendly typing and avoid unnecessary shuffles in staging joins.
+  - **Redshift:** Be explicit with casts, and avoid patterns that trigger broad redistribution.
+  - **DuckDB:** Use DuckDB-native type casts and file-query compatibility where raw data is file-based.
+
+# ✅ Step 3: Validation Phase (MANDATORY CLI COMMANDS)
+Run all checks and fix/retry until green.
+
+```bash
+# Replace selectors/paths
+dbt compile --select <stg_model>
+dbt test --select <stg_model>
+
+# Source-level checks when source YAML changed
+dbt source freshness --select <source_name>
+
+# SQL style check when available
+sqlfluff lint models/path/to/<stg_model>.sql
+```
+
+Recommended expanded check for dependency safety:
+
+```bash
+dbt build --select <stg_model>+
+```
+
+Completion criteria:
+- Model compiles.
+- Model tests pass.
+- Source freshness check passes or expected SLA exceptions are documented.
+- Lint passes.
+
+# 🚨 Common Pitfalls (Self-Correction Guardrails)
+- Do not skip downstream dependency discovery before renaming columns.
+- Do not embed mart-level business rules in staging models.
+- Do not cast blindly; use warehouse-safe cast patterns and handle invalid values explicitly.
+- Do not use `select *` in final staging output.
+- Do not complete the task without compile + test + (when relevant) freshness checks.

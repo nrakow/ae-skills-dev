@@ -5,12 +5,12 @@
 | Skill | Version | Last Updated | Notes |
 |-------|---------|--------------|-------|
 | data-stack-context | 1.1.0 | 2026-03-01 | Added git provider, modeling philosophy, Python support fields |
-| data-modeling | 1.1.0 | 2026-03-01 | Added AI failure modes section |
+| data-modeling | 1.2.0 | 2026-03-01 | Migrated to enforced 5-step architecture with mandatory DAG discovery and CLI validation loops |
 | dbt-project-setup | 1.1.0 | 2026-03-01 | Fixed --limit bug; added unit_tests/ to folder structure |
 | sql-style-guide | 1.0.0 | 2026-02-27 | Initial release |
 | marts-design | 1.0.0 | 2026-02-27 | Initial release |
-| staging-layer | 1.0.0 | 2026-02-27 | Initial release |
-| incremental-models | 1.1.0 | 2026-03-01 | Added microbatch strategy, deterministic key rules, backfill protocol |
+| staging-layer | 1.1.0 | 2026-03-01 | Migrated to enforced 5-step architecture with warehouse lock and mandatory compile/test/freshness checks |
+| incremental-models | 1.2.0 | 2026-03-01 | Migrated to enforced 5-step architecture with deterministic incremental contract and mandatory validation loops |
 | slowly-changing-dimensions | 1.1.0 | 2026-03-01 | Fixed broken expression_is_true test; added singular test example |
 | metrics-layer | 1.0.0 | 2026-02-27 | Initial release |
 | entity-resolution | 1.0.0 | 2026-02-27 | Initial release |
