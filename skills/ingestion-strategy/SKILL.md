@@ -324,6 +324,8 @@ ORDER BY 1 DESC
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 - After configuring ingestion, run `dbt source freshness` to confirm the source is reporting as fresh.
 - Verify `loaded_at_field` is populated with recent timestamps by querying the raw table directly.
 - Run `node tools/clis/source-freshness.js` again after the first connector sync to confirm the source appears as fresh.

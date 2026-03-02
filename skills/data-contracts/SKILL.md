@@ -11,12 +11,15 @@ triggers:
 reads_first:
   - data-stack-context
   - data-quality-testing
+consumes:
+  - "data-quality-testing: schema.yml test definitions"
 cli_tools:
   - schema-introspect.js
 produces:
   - "contract YAML"
   - "dbt schema.yml constraints"
   - "dbt model contracts"
+min_dbt_version: "1.5.0"
 validates_with:
   - "dbt parse"
   - "dbt compile"
@@ -274,6 +277,8 @@ For teams new to data contracts:
 - Automate consumer notification on schema changes
 
 ## Verify Your Work
+
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
 
 - Run `dbt parse` to validate contract YAML syntax and confirm `contract.enforced: true` is recognized.
 - Run `dbt test --select contracts` (or the tag used for contract tests) to confirm all contract-level tests pass.

@@ -11,6 +11,8 @@ triggers:
 reads_first:
   - data-stack-context
   - staging-layer
+consumes:
+  - "staging-layer: stg_ model SQL"
 cli_tools:
   - model-stats.js
 produces:
@@ -306,6 +308,8 @@ having count(*) > 1
 Run it with: `dbt test --select dim_customers_history`
 
 ## Verify Your Work
+
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
 
 After writing the snapshot, run it and test the output:
 

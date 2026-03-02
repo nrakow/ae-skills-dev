@@ -390,6 +390,8 @@ dbt docs generate && dbt docs serve
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 Run the Post-Setup Checklist already in this skill (the `dbt parse`, `dbt debug`, `dbt deps`, `dbt build --select staging` sequence). All five commands should exit cleanly before considering the setup done. Pay particular attention to `dbt debug` — it confirms the warehouse connection and profiles path before any models are run.
 
 ## If Something Goes Wrong

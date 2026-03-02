@@ -194,6 +194,8 @@ group by 1  -- Scans 500M rows on every dashboard load
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 - Open the dashboard in the BI tool and confirm all tiles load without errors.
 - Apply each filter and verify all tiles update consistently to the same time range.
 - Check the "as of" timestamp against the latest dbt run timestamp for the source model.

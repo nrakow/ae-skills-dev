@@ -420,6 +420,8 @@ ALTER WAREHOUSE TRANSFORMING SET RESOURCE_MONITOR = daily_budget;
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 - Re-run `node tools/clis/cost-estimate.js --help` after applying optimizations to measure improvement against the baseline.
 - Re-run `node tools/clis/model-stats.js --manifest target/manifest.json` to confirm table sizes and scan efficiency improved.
 - For Snowflake: check `partitions_scanned / partitions_total` in query history — good clustering should bring this below 0.2.

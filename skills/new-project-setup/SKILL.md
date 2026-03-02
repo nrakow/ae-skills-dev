@@ -134,6 +134,8 @@ sqlfluff lint models/   # Confirm style rules enforced
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 - Run `dbt debug` to confirm warehouse connectivity and that `profiles.yml` is correctly configured for your target environment.
 - Run `dbt parse` to confirm no compilation errors exist across all model paths defined in `dbt_project.yml`.
 - Run `dbt deps` to confirm all packages in `packages.yml` resolved and installed without version conflicts.

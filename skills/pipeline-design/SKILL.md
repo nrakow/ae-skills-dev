@@ -273,6 +273,8 @@ schedules = {
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 - For Airflow/Dagster/Prefect: run `dbt parse` to validate the model graph is cycle-free before coding the DAG.
 - Draw the pipeline topology and verify it matches the dbt lineage graph exported by `lineage-export.js`.
 - For Airflow specifically: run `airflow dags list` and `airflow tasks list <dag_id>` to confirm the DAG parses correctly.

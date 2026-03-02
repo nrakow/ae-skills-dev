@@ -1,6 +1,6 @@
 ---
 name: new-mart-build
-description: "End-to-end workflow for building a new mart (fact or dimension table) from existing staging models through testing, metrics definition, and BI exposure. Sequences: data-modeling, marts-design, data-quality-testing, metrics-layer, dashboard-design. Triggers: 'build a new mart', 'create a fact table', 'new dimension table', 'new reporting model', 'build fct_', 'build dim_', 'new business domain model'."
+description: "End-to-end workflow for building a new mart (fact or dimension table) from existing staging models through testing, metrics definition, and BI exposure. Sequences: data-modeling, marts-design, data-quality-testing, dbt-unit-testing, metrics-layer, dashboard-design. Triggers: 'build a new mart', 'create a fact table', 'new dimension table', 'new reporting model', 'build fct_', 'build dim_', 'new business domain model'."
 triggers:
   - "build a new mart"
   - "create a fact table"
@@ -24,6 +24,7 @@ produces:
   - "dashboard specification"
 validates_with:
   - "dbt compile"
+  - "dbt test --select <model>,test_type:unit"
   - "dbt build --select <model>+"
   - "dbt test --select <model>"
 ---
@@ -93,7 +94,23 @@ Add comprehensive tests before promoting to production.
 
 ---
 
-## Phase 4: Define Metrics
+## Phase 4: Write Unit Tests
+
+**Skill**: `dbt-unit-testing`
+
+Validate the SQL transformation logic in the mart with mocked inputs before running against live data. Unit tests run without a warehouse connection and catch logic bugs before CI.
+
+**What to do:**
+1. Invoke the `dbt-unit-testing` skill (requires dbt 1.8+; skip this phase if on an older version).
+2. Write at least one unit test covering the mart's primary transformation logic (the `CASE` statement, aggregation, or join that defines the mart's value).
+3. Write a unit test for each edge case: null inputs, zero denominators, boundary dates.
+4. Run `dbt test --select <model>,test_type:unit` to confirm all unit tests pass locally.
+
+**Phase complete when**: All unit tests pass with `dbt test --select <model>,test_type:unit` and cover the primary business logic.
+
+---
+
+## Phase 5: Define Metrics
 
 **Skill**: `metrics-layer`
 
@@ -108,7 +125,7 @@ Register the key measures from this mart in the semantic layer.
 
 ---
 
-## Phase 5: Design the Dashboard
+## Phase 6: Design the Dashboard
 
 **Skill**: `dashboard-design`
 
@@ -127,6 +144,7 @@ Specify the dashboard that will consume this mart.
 
 ```bash
 dbt compile
+dbt test --select <model>,test_type:unit
 dbt build --select <model>+
 dbt test --select <model>
 node tools/clis/manifest-coverage.js --manifest target/manifest.json
@@ -134,7 +152,10 @@ node tools/clis/manifest-coverage.js --manifest target/manifest.json
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 - Run `dbt compile` to confirm the mart and any intermediate models compile without ref() errors or missing column references.
+- Run `dbt test --select <model>,test_type:unit` to confirm unit tests covering the mart's business logic all pass (skip if dbt version < 1.8).
 - Run `dbt build --select <model>+` to build the mart and all downstream models, confirming no test failures in the full dependency chain.
 - Run `dbt test --select <model>` to confirm uniqueness, not_null, relationships, and any range or accepted_values tests all pass.
 - Run `node tools/clis/manifest-coverage.js --manifest target/manifest.json` to confirm the new mart meets the minimum test coverage threshold.

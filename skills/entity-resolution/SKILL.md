@@ -349,6 +349,8 @@ For > 10M entity pairs, SQL cross joins become impractical:
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 After building the resolved entity model, validate uniqueness of the resolved entity ID and spot-check matched records:
 
 ```bash

@@ -276,6 +276,8 @@ After the audit, produce a prioritized plan:
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 - After implementing recommendations, re-run `node tools/clis/manifest-coverage.js --manifest target/manifest.json` to confirm coverage improved.
 - Run `dbt test --store-failures` to see baseline failure rates and persist failing rows for analysis.
 - Compare the before/after coverage percentages to quantify the improvement.

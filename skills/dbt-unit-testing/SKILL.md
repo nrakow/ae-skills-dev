@@ -11,12 +11,15 @@ triggers:
 reads_first:
   - data-stack-context
   - data-quality-testing
+consumes:
+  - "data-quality-testing: schema.yml test definitions"
 cli_tools:
   - test-results.js
 produces:
   - "dbt unit test YAML"
+min_dbt_version: "1.8.0"
 validates_with:
-  - "dbt test --select type:unit"
+  - "dbt test --select test_type:unit"
   - "node tools/clis/test-results.js --results target/run_results.json"
 ---
 
@@ -24,16 +27,16 @@ validates_with:
 
 I'll help you write dbt unit tests that validate SQL transformation logic using mocked inputs — no warehouse connection required.
 
-## Check Context First
-
-Read `.claude/data-stack-context.md`. Key inputs: dbt version (must be 1.8+), warehouse type, existing test patterns, CI platform.
-
 ## Before You Start
 
 - Confirm dbt version is 1.8+ — unit tests are not available in earlier versions; use singular tests as an alternative.
 - Read the model SQL being tested to identify all `ref()` and `source()` calls — every one of them needs a `given:` block or dbt will error.
 - Check `packages.yml` for `dbt_utils` if the model uses surrogate keys or utility macros that need mocking.
 - Review the existing `schema.yml` for the model to see if any unit tests already exist before adding new ones.
+
+## Check Context First
+
+Read `.claude/data-stack-context.md`. Key inputs: dbt version (must be 1.8+), warehouse type, existing test patterns, CI platform.
 
 ## Unit Tests vs Data Tests vs Singular Tests
 
@@ -447,9 +450,11 @@ If the macro's logic itself has branches, cover them with separate unit tests fe
 
 ## Verify Your Work
 
-- Run `dbt test --select type:unit` to execute all unit tests.
-- Run `node tools/clis/test-results.js --results target/run_results.json` to see pass/fail per unit test with structured output.
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 - Run `dbt parse` first to catch YAML syntax errors before running tests.
+- Run `dbt test --select test_type:unit` to execute all unit tests.
+- Run `node tools/clis/test-results.js --results target/run_results.json` to see pass/fail per unit test with structured output.
 
 ## If Something Goes Wrong
 

@@ -131,6 +131,8 @@ node tools/clis/source-freshness.js --results target/sources.json
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 - Run `dbt source freshness` and confirm all newly onboarded sources report green — no warn or error freshness violations.
 - Run `dbt compile` to confirm all staging models compile without missing column references or ref() errors.
 - Run `dbt test --select staging` to confirm all primary key, not_null, and relationships tests pass with zero failures.

@@ -26,16 +26,16 @@ validates_with:
 
 I'll help you write comprehensive dbt tests — from basic schema tests to complex custom SQL assertions — that catch data quality issues before they reach dashboards.
 
-## Check Context First
-
-Read `.claude/data-stack-context.md`. Key inputs: dbt version, packages installed (dbt_utils, Elementary), warehouse type.
-
 ## Before You Start
 
 - Run `node tools/clis/manifest-coverage.js --manifest target/manifest.json` first to identify which models have no tests — start with those.
 - Read existing `schema.yml` files to understand current test coverage before adding more.
 - Check `packages.yml` to confirm `dbt_utils` and `elementary-data/elementary` are installed.
 - Confirm your dbt version supports `data_tests:` key (dbt 1.8+) vs `tests:` (older versions).
+
+## Check Context First
+
+Read `.claude/data-stack-context.md`. Key inputs: dbt version, packages installed (dbt_utils, Elementary), warehouse type.
 
 ## Testing Hierarchy
 
@@ -307,7 +307,7 @@ unit_tests:
 | Data test | Validate real data meets constraints | ✅ Yes |
 | Singular test | Complex cross-model assertions | ✅ Yes |
 
-Run unit tests: `dbt test --select fct_orders --select-unit-tests-only`
+Run unit tests: `dbt test --select fct_orders,test_type:unit`
 
 **Testing macros via unit tests** — pass the compiled output:
 ```yaml
@@ -423,6 +423,8 @@ When tests fail in production:
 6. Add a postmortem test to prevent recurrence
 
 ## Verify Your Work
+
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
 
 - Run `dbt test` to execute all schema and singular tests.
 - Run `dbt test --store-failures` to persist failing rows for inspection.

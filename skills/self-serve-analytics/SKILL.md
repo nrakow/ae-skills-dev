@@ -209,6 +209,8 @@ order by 1 desc
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 - Run `dbt parse` to confirm all exposure YAML is valid and references real models.
 - Open the self-serve explore or dashboard as a business-user test account and confirm all fields are visible and labeled in plain language.
 - Run a representative business-user query (e.g., "revenue by month") and verify it returns in under 3 seconds.
