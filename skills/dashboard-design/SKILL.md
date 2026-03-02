@@ -12,6 +12,7 @@ reads_first:
   - data-stack-context
   - kpi-framework
   - marts-design
+  - obt-design
 cli_tools: []
 produces:
   - "dashboard specification"

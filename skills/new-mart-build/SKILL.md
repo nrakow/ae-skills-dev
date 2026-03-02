@@ -12,6 +12,7 @@ triggers:
 reads_first:
   - data-stack-context
   - staging-layer
+  - obt-design
 cli_tools:
   - manifest-parse.js
   - manifest-lineage.js

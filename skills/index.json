@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-02T05:18:16.938Z",
+  "generated_at": "2026-03-02T21:12:13.526Z",
   "skills": [
     {
       "name": "access-control",
@@ -63,6 +63,39 @@
         "dbt compile --select activity_stream"
       ],
       "path": "skills/activity-schema/SKILL.md"
+    },
+    {
+      "name": "advanced-jinja-patterns",
+      "description": "Write clean, correct, maintainable Jinja in dbt — dynamic SQL generation, loops, set/namespace mutation, macros, adapter dispatch, and safe empty-list guards. Use when generating repetitive SQL, building reusable macros, writing adapter-aware logic, or debugging compile-time vs run-time behavior. Triggers: 'dynamic SQL', 'jinja loop', 'dbt macro', 'adapter dispatch', 'set variable', 'namespace', 'union all loop', 'run_query', 'jinja template'.",
+      "triggers": [
+        "dynamic SQL",
+        "jinja loop",
+        "dbt macro",
+        "adapter dispatch",
+        "set variable",
+        "namespace",
+        "union all loop",
+        "run_query",
+        "jinja template",
+        "compile-time"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "dbt-project-setup"
+      ],
+      "consumes": [],
+      "cli_tools": [],
+      "produces": [
+        "dbt macros",
+        "model SQL with Jinja",
+        "adapter-dispatched SQL helpers"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile",
+        "dbt run"
+      ],
+      "path": "skills/advanced-jinja-patterns/SKILL.md"
     },
     {
       "name": "anomaly-detection",
@@ -141,7 +174,8 @@
       "reads_first": [
         "data-stack-context",
         "kpi-framework",
-        "marts-design"
+        "marts-design",
+        "obt-design"
       ],
       "consumes": [],
       "cli_tools": [
@@ -579,7 +613,8 @@
         "measure conversion rate between steps"
       ],
       "reads_first": [
-        "data-stack-context"
+        "data-stack-context",
+        "advanced-jinja-patterns"
       ],
       "consumes": [],
       "cli_tools": [
@@ -844,7 +879,8 @@
       ],
       "reads_first": [
         "data-stack-context",
-        "staging-layer"
+        "staging-layer",
+        "obt-design"
       ],
       "consumes": [],
       "cli_tools": [
@@ -934,6 +970,43 @@
         "dbt test --select staging"
       ],
       "path": "skills/new-source-onboarding/SKILL.md"
+    },
+    {
+      "name": "obt-design",
+      "description": "Design and build One Big Table (OBT) models — wide, pre-joined, denormalized datasets that eliminate BI-layer joins for self-service analytics. Use when building executive dashboards, replacing ad-hoc extracts, supporting non-technical users, or reducing Tableau/Metabase/Power BI join complexity. Triggers: 'one big table', 'OBT', 'wide table', 'flatten for BI', 'denormalized mart', 'self-service dataset', 'dashboard table', 'pre-joined'.",
+      "triggers": [
+        "one big table",
+        "OBT",
+        "wide table",
+        "flatten for BI",
+        "denormalized mart",
+        "self-service dataset",
+        "dashboard table",
+        "pre-joined",
+        "executive reporting table"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "data-modeling",
+        "marts-design"
+      ],
+      "consumes": [
+        "data-modeling: fact and dimension tables",
+        "marts-design: mart layer conventions"
+      ],
+      "cli_tools": [],
+      "produces": [
+        "OBT model SQL",
+        "schema YAML with column-level docs",
+        "dbt tests for row stability and nulls"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile",
+        "dbt run",
+        "dbt test --select <obt_model>"
+      ],
+      "path": "skills/obt-design/SKILL.md"
     },
     {
       "name": "pii-handling",
@@ -1046,7 +1119,8 @@
       "reads_first": [
         "data-stack-context",
         "kpi-framework",
-        "metrics-layer"
+        "metrics-layer",
+        "obt-design"
       ],
       "consumes": [],
       "cli_tools": [
@@ -1187,6 +1261,40 @@
         "node tools/clis/model-stats.js --manifest target/manifest.json"
       ],
       "path": "skills/warehouse-optimization/SKILL.md"
+    },
+    {
+      "name": "warehouse-udf-strategy",
+      "description": "Decide when to use warehouse-native UDFs vs dbt macros, then implement, version, and govern them correctly. Use when repeating the same SQL transformation logic across multiple models, evaluating macro vs UDF tradeoffs, or writing complex runtime logic that SQL alone handles awkwardly. Triggers: 'create function', 'UDF', 'user defined function', 'reusable SQL logic', 'macro vs UDF', 'javascript UDF', 'BigQuery function', 'Snowflake function'.",
+      "triggers": [
+        "create function",
+        "UDF",
+        "user defined function",
+        "reusable SQL logic",
+        "macro vs UDF",
+        "javascript UDF",
+        "BigQuery function",
+        "Snowflake function",
+        "safe divide",
+        "custom function"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "advanced-jinja-patterns"
+      ],
+      "consumes": [],
+      "cli_tools": [],
+      "produces": [
+        "SQL UDF definition",
+        "dbt macro wrapper",
+        "adapter dispatch integration",
+        "UDF documentation block"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile",
+        "dbt run"
+      ],
+      "path": "skills/warehouse-udf-strategy/SKILL.md"
     }
   ]
 }
