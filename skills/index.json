@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-02T21:06:23.290Z",
+  "generated_at": "2026-03-02T21:12:13.526Z",
   "skills": [
     {
       "name": "access-control",
@@ -174,7 +174,8 @@
       "reads_first": [
         "data-stack-context",
         "kpi-framework",
-        "marts-design"
+        "marts-design",
+        "obt-design"
       ],
       "consumes": [],
       "cli_tools": [
@@ -612,7 +613,8 @@
         "measure conversion rate between steps"
       ],
       "reads_first": [
-        "data-stack-context"
+        "data-stack-context",
+        "advanced-jinja-patterns"
       ],
       "consumes": [],
       "cli_tools": [
@@ -877,7 +879,8 @@
       ],
       "reads_first": [
         "data-stack-context",
-        "staging-layer"
+        "staging-layer",
+        "obt-design"
       ],
       "consumes": [],
       "cli_tools": [
@@ -1116,7 +1119,8 @@
       "reads_first": [
         "data-stack-context",
         "kpi-framework",
-        "metrics-layer"
+        "metrics-layer",
+        "obt-design"
       ],
       "consumes": [],
       "cli_tools": [

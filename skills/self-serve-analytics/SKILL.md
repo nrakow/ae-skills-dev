@@ -12,6 +12,7 @@ reads_first:
   - data-stack-context
   - kpi-framework
   - metrics-layer
+  - obt-design
 cli_tools: []
 produces:
   - "semantic layer design"

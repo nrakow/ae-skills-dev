@@ -9,6 +9,7 @@ triggers:
   - "measure conversion rate between steps"
 reads_first:
   - data-stack-context
+  - advanced-jinja-patterns
 cli_tools: []
 produces:
   - "dbt model SQL (fct_*_funnel, mtr_funnel_summary)"
