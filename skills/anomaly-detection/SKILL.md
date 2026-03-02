@@ -385,6 +385,8 @@ soda scan -d snowflake -c soda/configuration.yml soda/checks/fct_orders.yml
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 - Run `dbt test --select tag:elementary` to execute all Elementary anomaly tests.
 - Run `node tools/clis/test-results.js --results target/run_results.json` to see which models triggered anomaly alerts and review pass/fail/warn counts.
 - Check that Elementary internal models ran successfully: `dbt run --select elementary`.

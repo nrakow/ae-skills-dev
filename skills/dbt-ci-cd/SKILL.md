@@ -28,16 +28,16 @@ validates_with:
 
 I'll help you build a CI/CD pipeline that automatically tests, lints, and deploys dbt changes safely.
 
-## Check Context First
-
-Read `.claude/data-stack-context.md`. Key inputs: dbt Core or Cloud, warehouse type, CI platform (GitHub Actions/GitLab CI), git workflow.
-
 ## Before You Start
 
 - Check if `.github/workflows/` directory exists and read any existing CI config before creating a new one.
 - Run `node tools/clis/manifest-coverage.js --manifest target/manifest.json` to see current test coverage — CI will only be as good as the tests it runs.
 - Confirm that `target/manifest.json` (prod baseline) is stored in S3/GCS/artifact storage — slim CI requires a previous manifest for state comparison.
-- Verify warehouse CI credentials (role, user, schema) exist before writing the workflow.
+- > **Human required:** Verify that warehouse CI credentials (role, user, schema) exist in the target environment. Claude cannot create warehouse users or set repository secrets — a human must configure these before the CI pipeline will connect.
+
+## Check Context First
+
+Read `.claude/data-stack-context.md`. Key inputs: dbt Core or Cloud, warehouse type, CI platform (GitHub Actions/GitLab CI), git workflow.
 
 ## CI/CD Workflow Overview
 
@@ -444,9 +444,13 @@ commit;
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 - Run `dbt parse` locally to confirm the workflow's dbt commands will succeed before committing.
 - Test the slim CI command locally: `dbt build --select state:modified+ --defer --state <previous-manifest-path>` before pushing the workflow file.
+- Run `node tools/clis/manifest-coverage.js --manifest target/manifest.json` to confirm test coverage is sufficient for CI to be meaningful.
 - After first CI run, check the GitHub Actions log to confirm the manifest upload step succeeded.
+- > **Human required:** Confirm that CI secrets (`SNOWFLAKE_ACCOUNT`, `SNOWFLAKE_CI_USER`, `SNOWFLAKE_CI_PASSWORD`, etc.) are set in the repository's environment settings before the workflow can connect to the warehouse.
 
 ## If Something Goes Wrong
 

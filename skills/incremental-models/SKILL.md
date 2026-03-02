@@ -11,6 +11,8 @@ triggers:
 reads_first:
   - data-stack-context
   - staging-layer
+consumes:
+  - "staging-layer: stg_ model SQL"
 cli_tools:
   - model-stats.js
   - manifest-coverage.js
@@ -366,6 +368,8 @@ When reprocessing historical data:
 Never silently partial-backfill. Always cascade through the DAG.
 
 ## Verify Your Work
+
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
 
 Run the incremental build first, then force a full refresh and compare row counts:
 

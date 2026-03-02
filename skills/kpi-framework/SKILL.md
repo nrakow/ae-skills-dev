@@ -286,6 +286,8 @@ After defining KPIs:
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 Run these commands after building your KPI models to confirm correctness:
 
 ```bash

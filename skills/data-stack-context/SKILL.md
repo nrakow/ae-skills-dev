@@ -201,6 +201,8 @@ If the file does not exist, those skills will invoke this skill first.
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 No dbt commands are needed to verify this skill. Confirm the file was written by checking that `.claude/data-stack-context.md` exists at the project root and review these key fields: `Warehouse.Platform`, `Transformation.Version`, `Compliance`, and `Key Sources`. Each section should have a non-empty value — empty fields indicate the auto-draft failed to read the project files and Path B (conversational build) should be used to fill the gaps.
 
 ## If Something Goes Wrong

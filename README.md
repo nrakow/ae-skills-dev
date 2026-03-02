@@ -113,6 +113,12 @@ This creates `.claude/data-stack-context.md` with details about your warehouse, 
 | `cohort-analysis` | Design cohort retention and behavioral analysis models |
 | `event-modeling` | Model business processes as event streams for temporal analytics |
 
+### Lifecycle & Governance
+
+| Skill | Description |
+|-------|-------------|
+| `model-deprecation` | Safely retire dbt models, columns, and sources with consumer notification and a migration window |
+
 ---
 
 ## Tools
@@ -135,6 +141,14 @@ Skills are aware of the following platforms and can generate platform-specific S
 
 **Catalogs**: OpenMetadata, Atlan, dbt docs
 
+### Skill Index
+
+`skills/index.json` is a machine-readable index of all skills, auto-generated from each SKILL.md's frontmatter. It's used by agents for fast skill routing and disambiguation when multiple skills share similar triggers. Regenerate it after adding or modifying skills:
+
+```bash
+node tools/clis/skill-index.js --pretty
+```
+
 ### CLIs
 
 The `tools/clis/` directory contains zero-dependency Node.js scripts for common analytics engineering tasks:
@@ -143,6 +157,7 @@ The `tools/clis/` directory contains zero-dependency Node.js scripts for common 
 - dbt manifest parsers
 - Cost estimation utilities
 - Lineage graph exporters
+- Skill index generator (`skill-index.js`)
 
 Each CLI is a single file with no external dependencies and can be run with `node`.
 

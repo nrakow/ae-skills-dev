@@ -329,6 +329,8 @@ Document every metric with the same structure so there's no ambiguity:
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 After writing `semantic_models.yml` and `metrics.yml`, validate YAML syntax and then test query compilation:
 
 ```bash

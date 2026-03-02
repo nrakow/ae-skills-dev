@@ -1,0 +1,1192 @@
+{
+  "generated_at": "2026-03-02T05:18:16.938Z",
+  "skills": [
+    {
+      "name": "access-control",
+      "description": "Design and implement role-based access control (RBAC) for warehouse and BI layers. Use when setting up data access policies, implementing row-level or column-level security, granting permissions to analysts and BI tools, or auditing current access controls. Produces SQL role grants, masking policies, row access policies, and Terraform IAM configs.",
+      "triggers": [
+        "set up access control",
+        "implement role-based access",
+        "grant permissions to analysts",
+        "add row-level security",
+        "audit data permissions"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "SQL role and grant statements",
+        "Snowflake masking policy SQL",
+        "Snowflake row access policy SQL",
+        "BigQuery IAM Terraform config",
+        "LookML access grant definitions"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "SHOW GRANTS TO ROLE <role_name>;",
+        "SHOW MASKING POLICIES;",
+        "SELECT current_role(), current_user();",
+        "dbt run --select tag:pii && dbt test --select tag:pii"
+      ],
+      "path": "skills/access-control/SKILL.md"
+    },
+    {
+      "name": "activity-schema",
+      "description": "Model event streams using the Activity Schema pattern, producing a single unified activity stream from multiple sources. Use when building behavioral analytics, modeling user journeys over time, or implementing a flexible event-based analytics layer that avoids per-event-type tables. Produces a dbt mart model and companion entity enrichment model.",
+      "triggers": [
+        "build an activity schema",
+        "model event streams as a unified activity table",
+        "set up behavioral analytics",
+        "create a user activity stream",
+        "implement activity schema pattern"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "dbt model SQL (activity_stream mart)",
+        "dbt model SQL (entity_enrichment mart)",
+        "schema.yml column descriptions"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt run --select activity_stream entity_enrichment",
+        "dbt test --select activity_stream entity_enrichment",
+        "dbt compile --select activity_stream"
+      ],
+      "path": "skills/activity-schema/SKILL.md"
+    },
+    {
+      "name": "anomaly-detection",
+      "description": "Set up automated anomaly detection for data pipelines using Elementary or custom dbt tests. Use when implementing proactive data monitoring, detecting volume spikes or drops, catching distribution shifts, or alerting on freshness violations. Triggers: 'anomaly detection', 'detect anomalies', 'data spikes', 'outliers', 'elementary anomalies', 'volume monitoring', 'data monitoring', 'alert on data changes'.",
+      "triggers": [
+        "anomaly detection",
+        "detect anomalies",
+        "data spikes",
+        "volume monitoring",
+        "data monitoring",
+        "elementary anomalies",
+        "alert on data"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "data-quality-testing"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "test-results.js",
+        "source-freshness.js"
+      ],
+      "produces": [
+        "Elementary anomaly test YAML",
+        "schema.yml anomaly tests"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt test --select tag:elementary",
+        "node tools/clis/test-results.js --results target/run_results.json"
+      ],
+      "path": "skills/anomaly-detection/SKILL.md"
+    },
+    {
+      "name": "cohort-analysis",
+      "description": "Design and build cohort retention and LTV models for product and revenue analysis. Use when measuring user retention over time, calculating lifetime value by acquisition cohort, building cohort triangle tables, or understanding how behavior varies by when users joined. Produces dbt mart models for retention and cumulative LTV.",
+      "triggers": [
+        "build a cohort analysis",
+        "measure user retention",
+        "calculate LTV by cohort",
+        "create a retention curve",
+        "show me cohort retention"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "dbt model SQL (fct_cohort_retention)",
+        "dbt model SQL (fct_cohort_ltv)",
+        "dbt model SQL (fct_day_n_retention)",
+        "schema.yml column descriptions"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt run --select fct_cohort_retention fct_cohort_ltv",
+        "dbt test --select fct_cohort_retention fct_cohort_ltv",
+        "dbt compile --select fct_cohort_retention"
+      ],
+      "path": "skills/cohort-analysis/SKILL.md"
+    },
+    {
+      "name": "dashboard-design",
+      "description": "Design effective BI dashboards with clear layout, metric hierarchy, and filtering strategy. Use when building a new dashboard, improving an existing one, or establishing dashboard standards. Triggers: 'design dashboard', 'build dashboard', 'BI dashboard', 'dashboard layout', 'visualization', 'reporting dashboard', 'dashboard best practices'.",
+      "triggers": [
+        "design dashboard",
+        "build dashboard",
+        "BI dashboard",
+        "dashboard layout",
+        "visualization",
+        "reporting dashboard"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "kpi-framework",
+        "marts-design"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "dashboard specification",
+        "BI layer configuration"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "[]"
+      ],
+      "path": "skills/dashboard-design/SKILL.md"
+    },
+    {
+      "name": "data-catalog",
+      "description": "Implement and maintain a data catalog with metadata, documentation, and discovery tooling. Use when setting up dbt docs or an external catalog tool, improving documentation coverage across models, building a data dictionary for stakeholders, or integrating dbt artifacts with OpenMetadata or Atlan. Produces dbt YAML documentation, an overview page, and catalog connector configuration.",
+      "triggers": [
+        "set up a data catalog",
+        "document my dbt models",
+        "improve data discovery",
+        "generate dbt docs",
+        "build a data dictionary"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "dbt schema.yml model and column descriptions",
+        "dbt docs overview page (docs/overview.md)",
+        "OpenMetadata connector YAML config"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt docs generate",
+        "dbt compile",
+        "dbt test --select tag:documented"
+      ],
+      "path": "skills/data-catalog/SKILL.md"
+    },
+    {
+      "name": "data-contracts",
+      "description": "Define and enforce data contracts between producers and consumers to prevent breaking changes and guarantee schema stability. Use when formalizing producer-consumer agreements, implementing schema constraints, or protecting downstream dependencies from upstream changes. Triggers: 'data contract', 'schema contract', 'data SLA', 'producer consumer', 'enforce schema', 'breaking changes', 'contract testing'.",
+      "triggers": [
+        "data contract",
+        "schema contract",
+        "data SLA",
+        "producer consumer",
+        "enforce schema",
+        "breaking changes"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "data-quality-testing"
+      ],
+      "consumes": [
+        "data-quality-testing: schema.yml test definitions"
+      ],
+      "cli_tools": [
+        "schema-introspect.js"
+      ],
+      "produces": [
+        "contract YAML",
+        "dbt schema.yml constraints",
+        "dbt model contracts"
+      ],
+      "min_dbt_version": "1.5.0",
+      "validates_with": [
+        "dbt parse",
+        "dbt compile",
+        "dbt test --select <model>"
+      ],
+      "path": "skills/data-contracts/SKILL.md"
+    },
+    {
+      "name": "data-incident-response",
+      "description": "Structured workflow for investigating and resolving data quality incidents, metric anomalies, and pipeline failures. Sequences: data-observability-audit, anomaly-detection, data-lineage, data-quality-testing. Triggers: 'data incident', 'pipeline is broken', 'data quality alert', 'metric is wrong', 'data is late', 'dashboard is wrong', 'investigate data issue', 'data outage'.",
+      "triggers": [
+        "data incident",
+        "pipeline is broken",
+        "data quality alert",
+        "metric is wrong",
+        "data is late",
+        "dashboard is wrong",
+        "investigate data issue",
+        "data outage"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "test-results.js",
+        "source-freshness.js",
+        "manifest-lineage.js",
+        "manifest-coverage.js"
+      ],
+      "produces": [
+        "incident timeline",
+        "root cause analysis",
+        "remediation SQL or config",
+        "postmortem test"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt test --select <affected_model>",
+        "node tools/clis/test-results.js --results target/run_results.json"
+      ],
+      "path": "skills/data-incident-response/SKILL.md"
+    },
+    {
+      "name": "data-lineage",
+      "description": "Trace and document data lineage across sources, transformations, and reports using dbt's DAG and exposure definitions. Use when investigating data incidents and need to find upstream root causes, performing impact analysis before refactoring a model, documenting column-level lineage, or setting up cross-system lineage tooling. Produces dbt exposure YAML, impact analysis CLI commands, and lineage documentation.",
+      "triggers": [
+        "trace where this data comes from",
+        "run an impact analysis before changing a model",
+        "set up data lineage",
+        "show me what depends on this model",
+        "document column lineage"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "dbt exposures YAML (_exposures.yml)",
+        "dbt column lineage schema.yml annotations",
+        "Impact analysis CLI commands"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt ls --select +<model_name>",
+        "dbt ls --select <model_name>+",
+        "dbt docs generate && dbt docs serve",
+        "dbt source freshness"
+      ],
+      "path": "skills/data-lineage/SKILL.md"
+    },
+    {
+      "name": "data-modeling",
+      "description": "Design dimensional data models, entity-relationship diagrams, and dbt model architecture. Use when planning a new data domain, designing fact and dimension tables, or choosing between modeling approaches. Triggers: 'model my data', 'design data model', 'dimensional modeling', 'entity model', 'star schema design', 'data architecture'.",
+      "triggers": [
+        "model my data",
+        "design data model",
+        "dimensional modeling",
+        "data architecture",
+        "entity model"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "schema-introspect.js",
+        "manifest-parse.js"
+      ],
+      "produces": [
+        "entity-relationship diagram",
+        "dbt model SQL stubs",
+        "schema.yml"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile"
+      ],
+      "path": "skills/data-modeling/SKILL.md"
+    },
+    {
+      "name": "data-observability-audit",
+      "description": "Audit and improve data observability coverage across your pipeline including monitoring, alerting, freshness, and test coverage gaps. Use when assessing observability maturity, responding to data incidents, or implementing a monitoring strategy. Triggers: 'observability audit', 'data reliability', 'monitor data', 'data health check', 'monitoring coverage', 'data downtime', 'pipeline reliability'.",
+      "triggers": [
+        "observability audit",
+        "data reliability",
+        "monitor data",
+        "data health check",
+        "monitoring coverage",
+        "pipeline reliability"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "anomaly-detection",
+        "data-quality-testing"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "manifest-coverage.js",
+        "test-results.js",
+        "source-freshness.js"
+      ],
+      "produces": [
+        "observability gap report",
+        "monitoring configuration",
+        "alerting rules"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt test --store-failures",
+        "node tools/clis/manifest-coverage.js --manifest target/manifest.json",
+        "node tools/clis/source-freshness.js --results target/sources.json"
+      ],
+      "path": "skills/data-observability-audit/SKILL.md"
+    },
+    {
+      "name": "data-quality-testing",
+      "description": "Write comprehensive dbt tests including schema tests, custom SQL tests, unit tests, and Elementary anomaly tests to ensure data quality. Use when adding test coverage to existing models, auditing test gaps, or setting up a testing strategy from scratch. Triggers: 'add tests', 'write tests', 'test coverage', 'data quality', 'dbt tests', 'schema tests', 'test my models', 'data testing strategy'.",
+      "triggers": [
+        "add tests",
+        "write tests",
+        "test coverage",
+        "data quality",
+        "dbt tests",
+        "test my models"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "manifest-coverage.js",
+        "test-results.js"
+      ],
+      "produces": [
+        "schema.yml test definitions",
+        "tests/singular/ SQL files"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt test",
+        "dbt test --store-failures",
+        "node tools/clis/manifest-coverage.js --manifest target/manifest.json"
+      ],
+      "path": "skills/data-quality-testing/SKILL.md"
+    },
+    {
+      "name": "data-stack-context",
+      "description": "Capture and store the user's analytics stack configuration in .claude/data-stack-context.md so all other skills work without repetitive questions. Run this first when starting a new project or workspace. Triggers: 'set up context', 'configure my stack', 'initialize analytics engineering', 'update my stack config'.",
+      "triggers": [
+        "set up context",
+        "configure my stack",
+        "initialize",
+        "update stack config"
+      ],
+      "reads_first": [
+        "[]"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        ".claude/data-stack-context.md"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "[]"
+      ],
+      "path": "skills/data-stack-context/SKILL.md"
+    },
+    {
+      "name": "dbt-ci-cd",
+      "description": "Set up CI/CD pipelines for dbt projects using GitHub Actions, GitLab CI, or dbt Cloud jobs with slim CI and state comparison. Use when automating dbt deployments, setting up PR checks, or implementing environment promotion. Triggers: 'CI/CD', 'continuous integration', 'GitHub Actions', 'slim CI', 'deployment pipeline', 'dbt deploy', 'automate dbt', 'dbt cloud jobs'.",
+      "triggers": [
+        "CI/CD",
+        "continuous integration",
+        "GitHub Actions",
+        "slim CI",
+        "deployment pipeline",
+        "automate dbt",
+        "dbt cloud jobs"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "dbt-project-setup"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "manifest-coverage.js",
+        "test-results.js"
+      ],
+      "produces": [
+        ".github/workflows/dbt-ci.yml",
+        "dbt Cloud job configuration"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt parse",
+        "dbt build --select state:modified+",
+        "node tools/clis/manifest-coverage.js --manifest target/manifest.json"
+      ],
+      "path": "skills/dbt-ci-cd/SKILL.md"
+    },
+    {
+      "name": "dbt-project-setup",
+      "description": "Scaffold a production-ready dbt project with folder structure, profiles, packages, and CI/CD configuration. Use when starting a new dbt project or auditing an existing project structure. Triggers: 'set up dbt', 'new dbt project', 'scaffold dbt', 'bootstrap dbt project', 'dbt project structure', 'initialize dbt'.",
+      "triggers": [
+        "set up dbt",
+        "new dbt project",
+        "scaffold dbt",
+        "bootstrap dbt project",
+        "initialize dbt"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "dbt_project.yml",
+        "profiles.yml",
+        "packages.yml",
+        ".github/workflows/dbt.yml",
+        "generate_schema_name macro"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt parse",
+        "dbt debug",
+        "dbt deps",
+        "dbt build"
+      ],
+      "path": "skills/dbt-project-setup/SKILL.md"
+    },
+    {
+      "name": "dbt-unit-testing",
+      "description": "Write dbt unit tests (dbt 1.8+) to validate SQL transformation logic with mocked inputs and expected outputs. Use when testing complex business logic in isolation, building test-driven transformations, or catching regressions in model SQL. Triggers: 'unit test', 'dbt unit test', 'test SQL logic', 'mock data', 'test transformation', 'unit testing dbt', 'test business logic'.",
+      "triggers": [
+        "unit test",
+        "dbt unit test",
+        "test SQL logic",
+        "mock data",
+        "test transformation",
+        "unit testing dbt"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "data-quality-testing"
+      ],
+      "consumes": [
+        "data-quality-testing: schema.yml test definitions"
+      ],
+      "cli_tools": [
+        "test-results.js"
+      ],
+      "produces": [
+        "dbt unit test YAML"
+      ],
+      "min_dbt_version": "1.8.0",
+      "validates_with": [
+        "dbt test --select test_type:unit",
+        "node tools/clis/test-results.js --results target/run_results.json"
+      ],
+      "path": "skills/dbt-unit-testing/SKILL.md"
+    },
+    {
+      "name": "entity-resolution",
+      "description": "Deduplicate and resolve entity identity across sources. Use when the same customer appears in multiple systems with different IDs, merging user records from CRM and product database, or building a unified customer identity. Triggers: 'entity resolution', 'deduplication', 'identity stitching', 'merge customer records', 'cross-source customer matching', 'fuzzy matching', 'golden record'.",
+      "triggers": [
+        "entity resolution",
+        "deduplication",
+        "match records",
+        "merge customers",
+        "identity graph",
+        "customer 360",
+        "golden record"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "staging-layer"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "schema-introspect.js",
+        "model-stats.js"
+      ],
+      "produces": [
+        "entity resolution SQL",
+        "schema.yml"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile",
+        "dbt test --select"
+      ],
+      "path": "skills/entity-resolution/SKILL.md"
+    },
+    {
+      "name": "event-modeling",
+      "description": "Model business processes as event streams for temporal analytics, audit trails, and process analysis. Use when designing an event-driven data model, tracking state transitions over time, modeling complex business processes like order lifecycles or subscription changes, or building audit trails. Produces fact event stream models, accumulating snapshot models, and event catalog YAML documentation.",
+      "triggers": [
+        "event modeling",
+        "model state transitions",
+        "order lifecycle events",
+        "event sourcing",
+        "process mining"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "dbt model SQL (fct_*_events, fct_*_snapshot)",
+        "schema.yml column documentation",
+        "event catalog YAML"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile --select tag:event_modeling",
+        "dbt test --select tag:event_modeling",
+        "dbt run --select fct_order_lifecycle_events --limit 100",
+        "dbt run --select fct_subscription_events --limit 100"
+      ],
+      "path": "skills/event-modeling/SKILL.md"
+    },
+    {
+      "name": "funnel-analysis",
+      "description": "Build funnel analysis models that measure step-by-step conversion rates and identify where users drop off. Use when tracking conversion through a user flow, calculating drop-off rates between funnel stages, building a reusable funnel macro, or segmenting funnel performance by cohort, channel, or device. Produces dbt fact models, aggregation models, and a reusable Jinja funnel macro.",
+      "triggers": [
+        "funnel analysis",
+        "conversion funnel",
+        "drop-off analysis",
+        "where are users dropping off",
+        "measure conversion rate between steps"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "dbt model SQL (fct_*_funnel, mtr_funnel_summary)",
+        "Jinja funnel macro (macros/funnel.sql)",
+        "schema.yml column documentation"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile --select tag:funnel",
+        "dbt test --select tag:funnel",
+        "dbt run --select fct_signup_conversion_funnel --limit 500",
+        "dbt run --select mtr_funnel_summary"
+      ],
+      "path": "skills/funnel-analysis/SKILL.md"
+    },
+    {
+      "name": "incremental-models",
+      "description": "Implement incremental dbt models with appropriate strategies per warehouse. Use when full table refreshes are too slow or expensive, processing event streams, or implementing efficient large-table updates. Triggers: 'incremental model', 'dbt incremental', 'append only', 'upsert', 'merge strategy', 'avoid full refresh', 'large table dbt'.",
+      "triggers": [
+        "incremental model",
+        "large table",
+        "event stream",
+        "append-only",
+        "incremental strategy",
+        "microbatch"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "staging-layer"
+      ],
+      "consumes": [
+        "staging-layer: stg_ model SQL"
+      ],
+      "cli_tools": [
+        "model-stats.js",
+        "manifest-coverage.js"
+      ],
+      "produces": [
+        "incremental dbt SQL",
+        "schema.yml"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile",
+        "dbt build --select <model>",
+        "dbt build --select <model> --full-refresh"
+      ],
+      "path": "skills/incremental-models/SKILL.md"
+    },
+    {
+      "name": "ingestion-strategy",
+      "description": "Design and implement a data ingestion strategy for moving data from sources into the warehouse using tools like Fivetran, Airbyte, or custom pipelines. Use when selecting an ingestion tool, setting up a new connector, or evaluating ingestion approaches. Triggers: 'ingest data', 'data ingestion', 'load data', 'Fivetran', 'Airbyte', 'connector setup', 'ELT pipeline', 'data loading', 'source connector'.",
+      "triggers": [
+        "ingest data",
+        "data ingestion",
+        "load data",
+        "Fivetran",
+        "Airbyte",
+        "connector setup",
+        "ELT pipeline"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "source-freshness.js"
+      ],
+      "produces": [
+        "ingestion tool configuration",
+        "dbt sources.yml"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt source freshness",
+        "node tools/clis/source-freshness.js --results target/sources.json"
+      ],
+      "path": "skills/ingestion-strategy/SKILL.md"
+    },
+    {
+      "name": "kpi-framework",
+      "description": "Define, document, and socialize KPIs across your organization, from individual metric definitions to a full metrics hierarchy. Use when establishing metric definitions, building a metrics dictionary, aligning teams on KPI calculations, or running a north-star metric workshop. Produces a metrics dictionary, KPI hierarchy documentation, and dbt SQL implementations for core metrics.",
+      "triggers": [
+        "KPI framework",
+        "define our metrics",
+        "metrics dictionary",
+        "north star metric workshop",
+        "what is our revenue metric"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "dbt model SQL (fct_subscriptions_monthly, fct_mrr_movements)",
+        "metrics dictionary markdown",
+        "KPI hierarchy documentation",
+        "schema.yml column documentation"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile --select tag:kpi",
+        "dbt test --select tag:kpi",
+        "dbt run --select fct_subscriptions_monthly",
+        "dbt docs generate"
+      ],
+      "path": "skills/kpi-framework/SKILL.md"
+    },
+    {
+      "name": "looker-lkml",
+      "description": "Write LookML views, explores, and models for Looker BI. Use when building a new Looker explore, adding derived tables (PDTs), configuring access grants, or generating LookML from dbt models. Triggers: 'LookML', 'Looker view', 'Looker explore', 'PDT', 'Looker dashboard', 'Looker model', 'write LookML', 'dbt to Looker'.",
+      "triggers": [
+        "LookML",
+        "Looker view",
+        "Looker explore",
+        "PDT",
+        "write LookML",
+        "dbt to Looker"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "marts-design"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "manifest-parse.js"
+      ],
+      "produces": [
+        "LookML view file",
+        "LookML explore",
+        "LookML model file"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "lookml-linter (if configured)",
+        "Looker IDE validation"
+      ],
+      "path": "skills/looker-lkml/SKILL.md"
+    },
+    {
+      "name": "marts-design",
+      "description": "Design and build dbt mart models including fact tables, dimension tables, and star/snowflake schemas. Use when building a new reporting domain, designing a fact table for a business process, or creating dimension tables for reporting. Triggers: 'design a mart', 'fact table', 'dimension table', 'build a mart', 'star schema', 'reporting model', 'fct_ model', 'dim_ model'.",
+      "triggers": [
+        "design a mart",
+        "fact table",
+        "dimension table",
+        "build a mart",
+        "star schema",
+        "fct_ model",
+        "dim_ model"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "data-modeling",
+        "staging-layer"
+      ],
+      "consumes": [
+        "data-modeling: entity-relationship diagram",
+        "staging-layer: stg_ model SQL"
+      ],
+      "cli_tools": [
+        "manifest-parse.js",
+        "schema-introspect.js"
+      ],
+      "produces": [
+        "fct_ or dim_ model SQL",
+        "schema.yml with column docs"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile",
+        "dbt test --select marts"
+      ],
+      "path": "skills/marts-design/SKILL.md"
+    },
+    {
+      "name": "metrics-layer",
+      "description": "Define semantic metrics with dbt Semantic Layer, MetricFlow, or Cube. Use when you need a single source of truth for metric definitions, want metrics available across BI tools, or are standardizing KPI calculations across teams. Triggers: 'metrics layer', 'dbt metrics', 'MetricFlow', 'Cube metrics', 'semantic layer', 'metric definitions', 'single source of truth metrics'.",
+      "triggers": [
+        "metrics layer",
+        "semantic layer",
+        "dbt metrics",
+        "MetricFlow",
+        "define metrics",
+        "business metrics dbt"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "marts-design"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "manifest-parse.js"
+      ],
+      "produces": [
+        "semantic_models.yml",
+        "metrics.yml"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt parse",
+        "mf validate"
+      ],
+      "path": "skills/metrics-layer/SKILL.md"
+    },
+    {
+      "name": "model-deprecation",
+      "description": "Safely retire dbt models, columns, or sources without breaking downstream consumers. Use when removing a model that has active consumers, renaming a mart column, sunsetting a source, or cleaning up legacy models. Triggers: 'deprecate a model', 'remove a model', 'rename a column', 'sunset a source', 'retire a model', 'delete a mart', 'clean up old models', 'remove a column'.",
+      "triggers": [
+        "deprecate a model",
+        "remove a model",
+        "rename a column",
+        "sunset a source",
+        "retire a model",
+        "delete a mart",
+        "clean up old models",
+        "remove a column"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "data-lineage"
+      ],
+      "consumes": [
+        "data-lineage: downstream dependency map for the model or column being deprecated"
+      ],
+      "cli_tools": [
+        "manifest-lineage.js",
+        "manifest-parse.js",
+        "lineage-export.js"
+      ],
+      "produces": [
+        "deprecation notice in schema.yml meta",
+        "migration guide (inline YAML description)",
+        "updated schema.yml removing deprecated artifacts"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile",
+        "dbt test --select <successor_model>",
+        "node tools/clis/manifest-lineage.js --manifest target/manifest.json --model <deprecated_model>"
+      ],
+      "path": "skills/model-deprecation/SKILL.md"
+    },
+    {
+      "name": "new-mart-build",
+      "description": "End-to-end workflow for building a new mart (fact or dimension table) from existing staging models through testing, metrics definition, and BI exposure. Sequences: data-modeling, marts-design, data-quality-testing, dbt-unit-testing, metrics-layer, dashboard-design. Triggers: 'build a new mart', 'create a fact table', 'new dimension table', 'new reporting model', 'build fct_', 'build dim_', 'new business domain model'.",
+      "triggers": [
+        "build a new mart",
+        "create a fact table",
+        "new dimension table",
+        "new reporting model",
+        "build fct_",
+        "build dim_",
+        "new business domain"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "staging-layer"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "manifest-parse.js",
+        "manifest-lineage.js",
+        "manifest-coverage.js"
+      ],
+      "produces": [
+        "fct_ or dim_ model SQL",
+        "intermediate model SQL (if needed)",
+        "schema.yml with tests",
+        "metrics.yml",
+        "dashboard specification"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile",
+        "dbt test --select <model>,test_type:unit",
+        "dbt build --select <model>+",
+        "dbt test --select <model>"
+      ],
+      "path": "skills/new-mart-build/SKILL.md"
+    },
+    {
+      "name": "new-project-setup",
+      "description": "End-to-end setup for a new analytics engineering project from blank slate to production-ready dbt project. Sequences: data-stack-context, dbt-project-setup, sql-style-guide, data-modeling, data-quality-testing, dbt-ci-cd. Triggers: 'new analytics project', 'start analytics engineering', 'set up from scratch', 'brand new dbt project', 'analytics engineering setup', 'bootstrap analytics'.",
+      "triggers": [
+        "new analytics project",
+        "start analytics engineering",
+        "set up from scratch",
+        "brand new dbt project",
+        "bootstrap analytics"
+      ],
+      "reads_first": [
+        "[]"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "complete dbt project structure",
+        ".claude/data-stack-context.md",
+        "CI/CD pipeline",
+        "SQL style guide",
+        "initial testing strategy"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt debug",
+        "dbt parse",
+        "dbt build"
+      ],
+      "path": "skills/new-project-setup/SKILL.md"
+    },
+    {
+      "name": "new-source-onboarding",
+      "description": "End-to-end workflow for onboarding a new data source from ingestion configuration through staging, testing, documentation, and lineage registration. Sequences: ingestion-strategy, staging-layer, data-quality-testing, data-catalog, data-lineage. Triggers: 'add a new source', 'new data source', 'onboard a connector', 'new connector', 'add Fivetran connector', 'add Airbyte source', 'ingest new data'.",
+      "triggers": [
+        "add a new source",
+        "new data source",
+        "onboard a connector",
+        "new connector",
+        "add Fivetran connector",
+        "add Airbyte source",
+        "ingest new data"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "schema-introspect.js",
+        "source-freshness.js"
+      ],
+      "produces": [
+        "ingestion connector configuration",
+        "sources.yml",
+        "stg_ model SQL",
+        "schema.yml with tests",
+        "catalog documentation"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt source freshness",
+        "dbt compile",
+        "dbt test --select staging"
+      ],
+      "path": "skills/new-source-onboarding/SKILL.md"
+    },
+    {
+      "name": "pii-handling",
+      "description": "Identify, classify, and protect personally identifiable information in compliance with GDPR, CCPA, and HIPAA. Use when auditing data for PII exposure, implementing data masking or pseudonymization, setting up retention policies, handling data deletion or DSAR requests, or preparing for a compliance audit. Produces dbt masking macros, schema.yml PII tags, dynamic masking policy SQL, and a PII audit checklist.",
+      "triggers": [
+        "handle PII in my warehouse",
+        "GDPR compliance",
+        "mask personal data",
+        "data deletion right to erasure",
+        "PII audit"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "dbt masking macros (macros/mask_pii.sql)",
+        "schema.yml PII column tags and meta",
+        "Snowflake dynamic masking policy SQL",
+        "BigQuery policy tag configuration",
+        "PII audit checklist"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile --select tag:pii",
+        "dbt test --select tag:pii",
+        "dbt run --select tag:pii --target dev",
+        "dbt run --select stg_customers --target dev"
+      ],
+      "path": "skills/pii-handling/SKILL.md"
+    },
+    {
+      "name": "pipeline-design",
+      "description": "Design end-to-end data pipeline architecture including orchestration patterns, dependency management, and failure handling. Use when planning a new data pipeline, choosing between orchestration tools, or redesigning an existing pipeline for reliability. Triggers: 'pipeline design', 'data pipeline', 'orchestration design', 'DAG design', 'pipeline architecture', 'airflow DAG', 'dagster asset', 'pipeline reliability'.",
+      "triggers": [
+        "pipeline design",
+        "data pipeline",
+        "orchestration design",
+        "DAG design",
+        "pipeline architecture",
+        "pipeline reliability"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "ingestion-strategy"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "lineage-export.js"
+      ],
+      "produces": [
+        "pipeline architecture diagram",
+        "orchestrator DAG definition",
+        "dbt job configuration"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt parse",
+        "node tools/clis/lineage-export.js --manifest target/manifest.json --format dot"
+      ],
+      "path": "skills/pipeline-design/SKILL.md"
+    },
+    {
+      "name": "reverse-etl",
+      "description": "Design and implement reverse ETL pipelines that sync modeled warehouse data into operational tools like Salesforce, HubSpot, Intercom, and ad platforms. Use when syncing warehouse data to a CRM or marketing tool, configuring Census or Hightouch syncs, building a dbt activation layer, computing lead scores or customer health scores, or activating warehouse data for personalized marketing. Produces dbt activation model SQL, companion schema.yml, Census/Hightouch sync configuration, and a governance PR checklist.",
+      "triggers": [
+        "sync warehouse data to Salesforce",
+        "reverse ETL",
+        "set up Census or Hightouch",
+        "build an activation layer",
+        "lead scoring from the warehouse"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "dbt model SQL (act_<destination>__<object>.sql)",
+        "schema.yml with sync metadata and data tests",
+        "Census or Hightouch sync configuration YAML",
+        "Snowflake least-privilege role SQL",
+        "reverse ETL governance PR checklist"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile --select tag:activation",
+        "dbt test --select tag:activation",
+        "dbt run --select tag:activation",
+        "dbt test --select act_salesforce__lead_scores --select not_null_email"
+      ],
+      "path": "skills/reverse-etl/SKILL.md"
+    },
+    {
+      "name": "self-serve-analytics",
+      "description": "Design and implement a self-serve analytics layer that enables business users to answer questions without engineering help. Use when improving analyst independence, building a semantic layer, or reducing ad hoc request volume. Triggers: 'self-serve', 'self-service analytics', 'empower analysts', 'ad hoc queries', 'business user analytics', 'reduce engineering bottleneck'.",
+      "triggers": [
+        "self-serve",
+        "self-service analytics",
+        "empower analysts",
+        "ad hoc queries",
+        "business user analytics",
+        "reduce engineering bottleneck"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "kpi-framework",
+        "metrics-layer"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        "semantic layer design",
+        "mart exposure configuration",
+        "dbt exposures.yml"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt parse"
+      ],
+      "path": "skills/self-serve-analytics/SKILL.md"
+    },
+    {
+      "name": "slowly-changing-dimensions",
+      "description": "Design and implement SCD Type 1, 2, and 3 patterns in dbt. Use when you need to track historical changes in dimension attributes, implement dbt snapshots, or choose the right SCD type for a business requirement. Triggers: 'SCD', 'slowly changing dimension', 'track historical changes', 'dbt snapshot', 'customer history', 'attribute history'.",
+      "triggers": [
+        "SCD",
+        "slowly changing dimension",
+        "history tracking",
+        "type 2 SCD",
+        "dbt snapshot",
+        "track changes"
+      ],
+      "reads_first": [
+        "data-stack-context",
+        "staging-layer"
+      ],
+      "consumes": [
+        "staging-layer: stg_ model SQL"
+      ],
+      "cli_tools": [
+        "model-stats.js"
+      ],
+      "produces": [
+        "dbt snapshot SQL",
+        "schema.yml"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt snapshot",
+        "dbt test --select snapshots"
+      ],
+      "path": "skills/slowly-changing-dimensions/SKILL.md"
+    },
+    {
+      "name": "sql-style-guide",
+      "description": "Establish and enforce SQL formatting standards, naming conventions, and linting rules for analytics engineering. Use when setting up a new project, onboarding contributors, or enforcing consistency across models. Triggers: 'sql style', 'code style', 'sql formatting', 'sqlfluff', 'linting', 'naming conventions', 'sql standards'.",
+      "triggers": [
+        "sql style",
+        "code style",
+        "sql formatting",
+        "sqlfluff",
+        "linting",
+        "naming conventions"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "[]"
+      ],
+      "produces": [
+        ".sqlfluff config",
+        "style guide documentation"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "sqlfluff lint models/",
+        "sqlfluff fix models/"
+      ],
+      "path": "skills/sql-style-guide/SKILL.md"
+    },
+    {
+      "name": "staging-layer",
+      "description": "Build dbt staging models (stg_ prefix) that clean and standardize raw source data one-to-one. Use when adding a new source, building the first layer of transformation, or auditing existing staging models. Triggers: 'staging layer', 'staging model', 'stg_ model', 'build staging', 'raw to staging', 'clean source data', 'new source model'.",
+      "triggers": [
+        "staging layer",
+        "staging model",
+        "stg_ model",
+        "build staging",
+        "raw to staging",
+        "clean source data"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "schema-introspect.js",
+        "manifest-coverage.js"
+      ],
+      "produces": [
+        "stg_ model SQL",
+        "sources.yml",
+        "schema.yml"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "dbt compile",
+        "dbt source freshness",
+        "dbt test --select staging"
+      ],
+      "path": "skills/staging-layer/SKILL.md"
+    },
+    {
+      "name": "warehouse-optimization",
+      "description": "Optimize warehouse performance and cost through clustering, partitioning, materialization strategies, and query tuning. Use when queries are slow, compute costs are high, or a model needs to be optimized for production scale. Triggers: 'optimize warehouse', 'query performance', 'slow queries', 'clustering', 'partitioning', 'cost optimization', 'warehouse cost', 'query tuning', 'performance tuning'.",
+      "triggers": [
+        "optimize warehouse",
+        "query performance",
+        "slow queries",
+        "clustering",
+        "partitioning",
+        "cost optimization",
+        "performance tuning"
+      ],
+      "reads_first": [
+        "data-stack-context"
+      ],
+      "consumes": [],
+      "cli_tools": [
+        "cost-estimate.js",
+        "model-stats.js"
+      ],
+      "produces": [
+        "optimization recommendations",
+        "ALTER TABLE or cluster_by config SQL",
+        "updated dbt model config"
+      ],
+      "min_dbt_version": null,
+      "validates_with": [
+        "node tools/clis/cost-estimate.js --help",
+        "node tools/clis/model-stats.js --manifest target/manifest.json"
+      ],
+      "path": "skills/warehouse-optimization/SKILL.md"
+    }
+  ]
+}

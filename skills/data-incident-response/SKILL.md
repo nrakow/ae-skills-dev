@@ -85,7 +85,7 @@ Find all downstream models and dashboards affected by the broken model.
 1. Run `node tools/clis/manifest-lineage.js --manifest target/manifest.json --model <affected_model>` to get downstream dependencies.
 2. Invoke the `data-lineage` skill to understand full impact.
 3. List all affected downstream models, BI dashboards, and reverse ETL syncs.
-4. Notify stakeholders for any dashboards or CRM syncs in the blast radius.
+4. > **Human required:** Notify stakeholders for any dashboards or CRM syncs in the blast radius. Claude can draft the impact summary message but cannot send Slack messages, emails, or PagerDuty alerts — a human must deliver the notification.
 
 **Phase complete when**: All affected downstream consumers are identified and stakeholders are notified.
 
@@ -141,6 +141,8 @@ node tools/clis/test-results.js --results target/run_results.json
 ```
 
 ## Verify Your Work
+
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
 
 - Run `dbt test --select <affected_model>+` to confirm all tests pass across the affected model and its full downstream dependency chain.
 - Run `dbt source freshness` to confirm all sources are current and no stale data remains after remediation.

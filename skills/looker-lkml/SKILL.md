@@ -257,6 +257,8 @@ view: revenue_rollup_monthly {
 
 ## Verify Your Work
 
+**Do not present output from this skill as complete until every command below passes without error.** If a command fails, consult "If Something Goes Wrong" before asking the user.
+
 - Validate LookML in the Looker IDE (Development Mode → Validate LookML); confirm zero errors and zero warnings.
 - Run `lookml-linter` if configured in your project to catch style issues.
 - Open the explore in Looker UI, run a query with the new dimensions and measures, and confirm results match a direct warehouse query.
