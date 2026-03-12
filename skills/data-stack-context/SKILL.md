@@ -1,11 +1,22 @@
 ---
 name: data-stack-context
-description: "Capture and store the user's analytics stack configuration in .claude/data-stack-context.md so all other skills work without repetitive questions. Run this first when starting a new project or workspace. Triggers: 'set up context', 'configure my stack', 'initialize analytics engineering', 'update my stack config'."
+description: "Capture and store the user's analytics stack configuration in .claude/data-stack-context.md so all other skills work without repetitive questions. Run this first when starting a new project, onboarding to a new repo, or when skills keep asking the same setup questions. Fires for 'set up my project,' 'I just cloned this repo,' 'stop asking me what warehouse I use,' or 'initialize analytics engineering.' Also triggers when any other skill cannot find .claude/data-stack-context.md. Use this whenever project setup, stack configuration, or initial context capture comes up -- it is the prerequisite for every other skill."
 triggers:
   - "set up context"
   - "configure my stack"
   - "initialize"
   - "update stack config"
+  - "set up my project"
+  - "initialize analytics engineering"
+  - "what warehouse do I use"
+  - "stop asking me setup questions"
+  - "new project setup"
+  - "onboard to this repo"
+  - "configure analytics stack"
+  - "data stack setup"
+  - "context file missing"
+  - "first time setup"
+  - "get started with analytics engineering"
 reads_first: []
 cli_tools: []
 produces:

@@ -1,12 +1,20 @@
 ---
 name: pii-handling
-description: "Identify, classify, and protect personally identifiable information in compliance with GDPR, CCPA, and HIPAA. Use when auditing data for PII exposure, implementing data masking or pseudonymization, setting up retention policies, handling data deletion or DSAR requests, or preparing for a compliance audit. Produces dbt masking macros, schema.yml PII tags, dynamic masking policy SQL, and a PII audit checklist."
+description: "Identify, classify, mask, and protect personally identifiable information in your warehouse for GDPR, CCPA, and HIPAA compliance. Use when you realize email addresses or SSNs are exposed in production, an auditor is asking about PII controls, you need to handle a data deletion request, or someone says 'we might be leaking PII'. Also fires for 'mask personal data', 'GDPR compliance', 'data subject access request', 'right to erasure', 'PII audit', or 'how do I redact sensitive columns'. Use this whenever PII is exposed, untagged, unmasked, or you are preparing for a compliance audit. For access control policies, see access-control. For data contracts, see data-contracts. For cataloging PII columns, see data-catalog."
 triggers:
   - "handle PII in my warehouse"
   - "GDPR compliance"
   - "mask personal data"
   - "data deletion right to erasure"
   - "PII audit"
+  - "we might be leaking PII"
+  - "CCPA compliance"
+  - "HIPAA data handling"
+  - "redact sensitive columns"
+  - "data subject access request"
+  - "mask email addresses"
+  - "sensitive data exposure"
+  - "compliance audit preparation"
 reads_first:
   - data-stack-context
 cli_tools: []

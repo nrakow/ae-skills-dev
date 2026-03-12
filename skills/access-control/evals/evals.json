@@ -1,0 +1,102 @@
+{
+  "skill_name": "access-control",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We need to set up role-based access control for our Snowflake warehouse. We have three teams: finance, marketing, and data engineering. Finance should only see finance marts, marketing should only see marketing marts, and data engineering needs full access. We also need a service account for our dbt Cloud transformations and one for Fivetran loading.",
+      "expected_output": "The agent should design a complete RBAC hierarchy for Snowflake with functional roles (LOADER, TRANSFORMER, REPORTER) and team-specific analyst roles (ANALYST_FINANCE, ANALYST_MARKETING, ANALYST_ALL). It should generate SQL CREATE ROLE and GRANT statements, create service accounts for dbt and Fivetran with appropriate permissions, and follow least-privilege principles.",
+      "assertions": [
+        "Checks for .claude/data-stack-context.md before asking diagnostic questions",
+        "Creates a role hierarchy following least-privilege principles (LOADER, TRANSFORMER, REPORTER, analyst roles)",
+        "Generates SQL CREATE ROLE statements for all functional roles",
+        "Generates GRANT statements scoping LOADER to raw database write-only",
+        "Generates GRANT statements scoping TRANSFORMER to read raw and write analytics",
+        "Generates GRANT statements scoping analyst roles to their specific schemas only",
+        "Creates service account users with key-pair auth for dbt and password for Fivetran",
+        "Includes FUTURE GRANTS so new tables are automatically accessible",
+        "Uses a Human Required callout for setting actual passwords or RSA keys",
+        "Includes verification commands (SHOW GRANTS, SHOW ROLES) in the output"
+      ],
+      "files": ["SKILL.md"]
+    },
+    {
+      "id": 2,
+      "prompt": "An intern on the marketing team just told me they can see the salary column in our dim_employees table in Snowflake. We need to mask PII columns like salary, SSN, and email across all our marts tables immediately.",
+      "expected_output": "The agent should create Snowflake masking policies for salary, SSN, and email columns. Each policy should use CASE statements checking current_role() to reveal data only to authorized roles. The agent should also show how to apply the policies to specific columns and verify they work.",
+      "assertions": [
+        "Checks for .claude/data-stack-context.md to understand warehouse type and compliance requirements",
+        "Creates Snowflake masking policies using CREATE MASKING POLICY syntax",
+        "Each masking policy uses CASE with current_role() to gate access to authorized roles only",
+        "Applies masking policies to specific columns using ALTER TABLE MODIFY COLUMN SET MASKING POLICY",
+        "Provides different masking strategies per data type (partial mask for email, last-4 for SSN, full redaction for salary)",
+        "Includes verification steps to test masking as a non-privileged role",
+        "Does not overstep into the pii-handling skill for broader PII classification or discovery",
+        "Recommends reviewing which roles should be in the allowed list for each policy"
+      ],
+      "files": ["SKILL.md"]
+    },
+    {
+      "id": 3,
+      "prompt": "We're setting up our BigQuery project for a new analytics team. We need IAM permissions so that our Looker service account can only read marts, our dbt service account can read/write all datasets, and our analyst group can query marts but not raw data. We also need column-level security on PII fields.",
+      "expected_output": "The agent should generate BigQuery IAM Terraform configurations for the three access levels, plus column-level security using Data Catalog policy tags. It should also provide LookML access grant definitions for Looker.",
+      "assertions": [
+        "Checks for .claude/data-stack-context.md before proceeding",
+        "Generates Terraform google_bigquery_dataset_iam_member resources for Looker reporter role with dataViewer",
+        "Generates Terraform IAM for dbt transformer with dataEditor across raw, staging, and marts datasets",
+        "Generates Terraform IAM for analyst group with dataViewer on marts only",
+        "Includes BigQuery column-level security using policy tags and ALTER TABLE ALTER COLUMN SET OPTIONS",
+        "Provides LookML access_grant definitions for sensitive explores or fields",
+        "Notes BigQuery IAM propagation delay (up to 60 seconds) in troubleshooting",
+        "Uses a Human Required callout for creating GCP service accounts and granting IAM roles in the console"
+      ],
+      "files": ["SKILL.md"]
+    },
+    {
+      "id": 4,
+      "prompt": "Our Databricks workspace needs access control. We have Unity Catalog enabled and need to restrict access so that data scientists can read feature store tables but not PII tables, and our dbt service principal can write to all schemas in the analytics catalog.",
+      "expected_output": "The agent should provide Databricks Unity Catalog GRANT statements for catalogs, schemas, and tables. It should use Unity Catalog's fine-grained permissions and handle the service principal setup for dbt.",
+      "assertions": [
+        "Checks for .claude/data-stack-context.md to confirm Databricks and Unity Catalog usage",
+        "Generates Databricks Unity Catalog GRANT statements (GRANT USE CATALOG, GRANT USE SCHEMA, GRANT SELECT)",
+        "Creates separate permission scopes for data scientists vs dbt service principal",
+        "Restricts data scientist access by excluding PII tables or schemas",
+        "Grants dbt service principal write access (CREATE TABLE, MODIFY) across analytics catalog",
+        "Adapts the RBAC hierarchy pattern to Databricks-specific constructs (catalogs, schemas, groups)",
+        "Follows least-privilege principles appropriate for Databricks",
+        "Includes verification commands adapted for Databricks (SHOW GRANTS ON CATALOG, etc.)"
+      ],
+      "files": ["SKILL.md"]
+    },
+    {
+      "id": 5,
+      "prompt": "this intern can see salary data and I have no idea who else has access to what. our permissions are a total mess and we need to lock everything down before the auditors come next month",
+      "expected_output": "The agent should first help audit current permissions, then design and implement a proper RBAC setup. It should provide queries to discover current grants, identify overly broad access, and then build a clean role hierarchy with masking policies for sensitive data like salary.",
+      "assertions": [
+        "Checks for .claude/data-stack-context.md to determine warehouse type and compliance requirements",
+        "Provides audit queries to discover current user-to-role grants and identify overly broad access",
+        "Flags users with excessive role counts as suspects for review",
+        "Designs a clean RBAC hierarchy with least-privilege roles",
+        "Creates masking policies for sensitive columns like salary",
+        "Includes the access review checklist (service accounts use key-pair auth, departed employees removed, etc.)",
+        "Provides a Human Required callout for revoking existing overly broad grants",
+        "Recommends quarterly access review process going forward"
+      ],
+      "files": ["SKILL.md"]
+    },
+    {
+      "id": 6,
+      "prompt": "We need to classify all PII columns across our warehouse and set up automated scanning to detect new PII fields as they appear in raw data. Can you help us build a PII detection and classification framework?",
+      "expected_output": "The agent should recognize that PII classification and automated scanning is the domain of the pii-handling skill, not access-control. It should defer to pii-handling for the classification framework while noting that access-control can help with masking policies once PII columns are identified.",
+      "assertions": [
+        "Checks for .claude/data-stack-context.md",
+        "Recognizes that PII classification and automated scanning falls under the pii-handling skill",
+        "Defers to pii-handling for the PII detection and classification framework",
+        "Does NOT generate a full PII scanning or classification system",
+        "May briefly mention that access-control can handle masking policies once columns are identified",
+        "Does not overstep into data-catalog territory for metadata management",
+        "Clearly communicates the boundary between access-control (enforcing permissions) and pii-handling (discovering/classifying PII)"
+      ],
+      "files": ["SKILL.md"]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 ---
 name: looker-lkml
-description: "Write LookML views, explores, and models for Looker BI. Use when building a new Looker explore, adding derived tables (PDTs), configuring access grants, or generating LookML from dbt models. Triggers: 'LookML', 'Looker view', 'Looker explore', 'PDT', 'Looker dashboard', 'Looker model', 'write LookML', 'dbt to Looker'."
+description: "Write and maintain LookML views, explores, models, and derived tables for Looker. Use when building a new explore, creating PDTs, setting up access grants, generating LookML from dbt models, or fixing broken Looker content. Also fires for 'my Looker explore is wrong', 'add a field to Looker', 'Looker is slow', 'create a Looker dashboard', or 'connect dbt to Looker'. Use this whenever you are working with Looker or LookML in any capacity. For designing the dbt marts that feed Looker, see marts-design. For defining metrics before exposing in Looker, see metrics-layer. For broader BI strategy, see dashboard-design and self-serve-analytics."
 triggers:
   - "LookML"
   - "Looker view"
@@ -8,6 +8,15 @@ triggers:
   - "PDT"
   - "write LookML"
   - "dbt to Looker"
+  - "Looker dashboard"
+  - "Looker model"
+  - "add a field to Looker"
+  - "my Looker explore is wrong"
+  - "Looker is slow"
+  - "derived table"
+  - "access grants Looker"
+  - "connect dbt to Looker"
+  - "LookML view from dbt"
 reads_first:
   - data-stack-context
   - marts-design

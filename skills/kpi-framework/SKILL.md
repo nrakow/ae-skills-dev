@@ -1,12 +1,22 @@
 ---
 name: kpi-framework
-description: "Define, document, and socialize KPIs across your organization, from individual metric definitions to a full metrics hierarchy. Use when establishing metric definitions, building a metrics dictionary, aligning teams on KPI calculations, or running a north-star metric workshop. Produces a metrics dictionary, KPI hierarchy documentation, and dbt SQL implementations for core metrics."
+description: "Define, document, and align your organization on KPIs -- from picking a north-star metric to building a full metrics hierarchy with dbt SQL implementations. Use when people disagree on how revenue is calculated, when every team has a different number for the same metric, when leadership asks 'what are our KPIs', or when you need a metrics dictionary. Also fires for 'everyone has different numbers', 'how do we define churn', 'MRR calculation', or 'metrics are a mess'. Use this whenever metric definitions are missing, inconsistent, or undocumented. For implementing metrics in a semantic layer, see metrics-layer. For building dashboards from KPIs, see dashboard-design. For self-service access to metrics, see self-serve-analytics."
 triggers:
   - "KPI framework"
   - "define our metrics"
   - "metrics dictionary"
-  - "north star metric workshop"
+  - "north star metric"
   - "what is our revenue metric"
+  - "everyone has different numbers"
+  - "how do we define churn"
+  - "MRR calculation"
+  - "metrics are a mess"
+  - "align on KPIs"
+  - "metric definitions"
+  - "metrics hierarchy"
+  - "what are our KPIs"
+  - "business metrics"
+  - "metric tree"
 reads_first:
   - data-stack-context
 cli_tools: []

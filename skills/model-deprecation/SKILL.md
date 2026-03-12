@@ -1,6 +1,6 @@
 ---
 name: model-deprecation
-description: "Safely retire dbt models, columns, or sources without breaking downstream consumers. Use when removing a model that has active consumers, renaming a mart column, sunsetting a source, or cleaning up legacy models. Triggers: 'deprecate a model', 'remove a model', 'rename a column', 'sunset a source', 'retire a model', 'delete a mart', 'clean up old models', 'remove a column'."
+description: "Safely deprecate and retire dbt models, columns, or sources without breaking downstream dashboards, pipelines, or consumers. Use when you want to delete a model but are scared of what will break, need to rename a column on a widely-used mart, are sunsetting a data source, or drowning in technical debt from old models nobody maintains. Also fires for 'can I delete this model', 'what depends on this table', 'we have too many unused models', 'is anything still using this', or 'how do I safely remove a column'. Use this whenever you are removing, renaming, retiring, or cleaning up anything in your dbt project. For understanding downstream dependencies, see data-lineage. For cataloging models, see data-catalog. For contract-based guarantees, see data-contracts."
 triggers:
   - "deprecate a model"
   - "remove a model"
@@ -10,6 +10,13 @@ triggers:
   - "delete a mart"
   - "clean up old models"
   - "remove a column"
+  - "can I delete this model"
+  - "what depends on this table"
+  - "legacy model cleanup"
+  - "safe to remove"
+  - "unused models"
+  - "technical debt cleanup"
+  - "is anything still using this"
 reads_first:
   - data-stack-context
   - data-lineage

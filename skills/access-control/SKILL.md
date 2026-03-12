@@ -1,12 +1,22 @@
 ---
 name: access-control
-description: "Design and implement role-based access control (RBAC) for warehouse and BI layers. Use when setting up data access policies, implementing row-level or column-level security, granting permissions to analysts and BI tools, or auditing current access controls. Produces SQL role grants, masking policies, row access policies, and Terraform IAM configs."
+description: "Design and implement role-based access control (RBAC) for warehouse and BI layers. Use when someone can see data they shouldn't, when a new hire needs permissions, when row-level or column-level security is needed, or when auditors ask 'who can access what?' Covers masking PII columns, locking down prod schemas, and Snowflake/BigQuery/Databricks role grants. Also fires when users say 'this intern can see salary data' or 'we have no idea who has access to what.' Use this whenever access, permissions, security, or governance comes up. For PII masking specifics, see pii-handling. For documenting what data exists, see data-catalog."
 triggers:
   - "set up access control"
   - "implement role-based access"
   - "grant permissions to analysts"
   - "add row-level security"
   - "audit data permissions"
+  - "who has access to this table"
+  - "lock down production data"
+  - "someone can see data they shouldn't"
+  - "new analyst needs permissions"
+  - "RBAC for warehouse"
+  - "column-level security"
+  - "masking policy"
+  - "restrict access to sensitive data"
+  - "set up roles in Snowflake"
+  - "data governance permissions"
 reads_first:
   - data-stack-context
 cli_tools: []

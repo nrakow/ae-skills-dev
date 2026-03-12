@@ -1,12 +1,20 @@
 ---
 name: new-project-setup
-description: "End-to-end setup for a new analytics engineering project from blank slate to production-ready dbt project. Sequences: data-stack-context, dbt-project-setup, sql-style-guide, data-modeling, data-quality-testing, dbt-ci-cd. Triggers: 'new analytics project', 'start analytics engineering', 'set up from scratch', 'brand new dbt project', 'analytics engineering setup', 'bootstrap analytics'."
+description: "End-to-end setup for a brand new analytics engineering project from blank slate to production-ready dbt project. Sequences data-stack-context, dbt-project-setup, sql-style-guide, data-modeling, data-quality-testing, and dbt-ci-cd into one guided flow. Use when starting from zero, onboarding a new team, rebuilding a legacy project, or someone says 'we need to set up analytics from scratch'. Also fires for 'bootstrap a dbt project', 'how do I start analytics engineering', 'new data team setup', or 'build a project from nothing'. Use this whenever no dbt project exists yet or you want the full setup walkthrough. For configuring an existing project, see dbt-project-setup. For capturing stack context, see data-stack-context. For SQL standards, see sql-style-guide."
 triggers:
   - "new analytics project"
   - "start analytics engineering"
   - "set up from scratch"
   - "brand new dbt project"
   - "bootstrap analytics"
+  - "how do I start analytics engineering"
+  - "new data team setup"
+  - "build a project from nothing"
+  - "we have no dbt project yet"
+  - "set up analytics from zero"
+  - "greenfield analytics project"
+  - "initialize dbt project"
+  - "new team onboarding analytics"
 reads_first: []
 cli_tools: []
 produces:

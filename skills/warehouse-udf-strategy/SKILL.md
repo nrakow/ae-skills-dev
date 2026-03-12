@@ -1,6 +1,6 @@
 ---
 name: warehouse-udf-strategy
-description: "Decide when to use warehouse-native UDFs vs dbt macros, then implement, version, and govern them correctly. Use when repeating the same SQL transformation logic across multiple models, evaluating macro vs UDF tradeoffs, or writing complex runtime logic that SQL alone handles awkwardly. Triggers: 'create function', 'UDF', 'user defined function', 'reusable SQL logic', 'macro vs UDF', 'javascript UDF', 'BigQuery function', 'Snowflake function'."
+description: "Decide when to use warehouse-native UDFs vs dbt macros, then implement, version, and govern them correctly. Use when you keep copy-pasting the same SQL logic across models, need a function that runs at query time not compile time, or someone says 'should this be a macro or a UDF'. Also fires for 'create a custom function', 'JavaScript UDF', 'Python UDF in Snowflake', 'reusable SQL logic', 'BigQuery function', or 'safe divide function'. Use this whenever you need reusable logic and are unsure whether it belongs in dbt or in the warehouse. For advanced Jinja and macros, see advanced-jinja-patterns. For warehouse performance, see warehouse-optimization."
 triggers:
   - "create function"
   - "UDF"
@@ -12,6 +12,9 @@ triggers:
   - "Snowflake function"
   - "safe divide"
   - "custom function"
+  - "should this be a macro or a UDF"
+  - "Python UDF"
+  - "keep copy-pasting the same SQL"
 reads_first:
   - data-stack-context
   - advanced-jinja-patterns

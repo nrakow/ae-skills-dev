@@ -1,0 +1,104 @@
+{
+  "skill_name": "data-modeling",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to design a dimensional model for our e-commerce order data. We have orders, order line items, customers, and products coming from our Postgres source system. We need to support revenue reporting by product category, customer segment, and time period. Can you help me structure this?",
+      "expected_output": "The agent should check data-stack-context.md, clarify the business process and grain, recommend a star schema with fct_orders (grain = order line item), dim_customers, dim_products, and dim_dates, generate dbt model SQL stubs with surrogate keys, produce schema.yml with tests and documentation, and include warehouse-specific optimizations.",
+      "assertions": [
+        "Checks for .claude/data-stack-context.md before asking warehouse questions",
+        "Clarifies the grain of the fact table (one row per order line item)",
+        "Recommends star schema as the default pattern",
+        "Generates a fact table (fct_orders) with surrogate keys using dbt_utils.generate_surrogate_key",
+        "Generates dimension tables (dim_customers, dim_products, dim_dates) with surrogate keys",
+        "Includes foreign key relationships between fact and dimension tables",
+        "Produces schema.yml with column descriptions and tests (unique, not_null, relationships)",
+        "Includes warehouse-specific config (partitioning, clustering, dist/sort keys)",
+        "Classifies measures as additive, semi-additive, or non-additive",
+        "Runs dbt compile as validation step"
+      ],
+      "files": ["SKILL.md"]
+    },
+    {
+      "id": 2,
+      "prompt": "We're building a SaaS analytics platform and need to model subscription data. Subscriptions can be created, upgraded, downgraded, paused, resumed, and cancelled. We need to track MRR changes over time and understand churn by customer segment. We're on Snowflake.",
+      "expected_output": "The agent should design an accumulating snapshot fact table for subscription lifecycle, a periodic snapshot for MRR tracking, dimension tables for customers and plans, and handle SCD Type 2 for plan changes.",
+      "assertions": [
+        "Checks for .claude/data-stack-context.md before proceeding",
+        "Identifies this as an accumulating snapshot fact pattern for subscription lifecycle",
+        "Recommends a periodic snapshot fact for daily/monthly MRR tracking",
+        "Designs dimension tables for customers and subscription plans",
+        "Addresses SCD Type 2 for tracking plan changes over time",
+        "Includes Snowflake-specific optimizations (clustering on date and customer_key)",
+        "Generates surrogate keys for all dimension tables",
+        "Produces schema.yml with tests including accepted_range for MRR values",
+        "Warns about grain explosion when joining subscriptions to customers"
+      ],
+      "files": ["SKILL.md"]
+    },
+    {
+      "id": 3,
+      "prompt": "Our marketing team wants a wide table for their campaigns data. They say star schema is too complex for them. Should I just build one big table with everything? We have campaign data, ad spend, impressions, clicks, and conversions across Google Ads and Facebook Ads.",
+      "expected_output": "The agent should evaluate the wide table vs star schema tradeoff, recommend the appropriate pattern based on the use case, and if a wide table is appropriate for the BI layer, still suggest proper staging and intermediate layers underneath.",
+      "assertions": [
+        "Checks for .claude/data-stack-context.md",
+        "Evaluates wide table vs star schema tradeoffs honestly",
+        "Does not blindly reject the wide table approach — considers the audience (marketing team, BI tool)",
+        "Recommends proper staging layers even if a wide mart is the final output",
+        "Addresses grain carefully — ensures campaign-date or campaign-platform-date grain is explicit",
+        "Warns about the 'kitchen sink' anti-pattern if combining too many domains",
+        "Includes cost considerations for materializing a wide table",
+        "Generates dbt model SQL with proper ref() chains from staging to mart"
+      ],
+      "files": ["SKILL.md"]
+    },
+    {
+      "id": 4,
+      "prompt": "I need to design a data model for our healthcare patient encounters system on BigQuery. We have patient demographics, provider information, diagnoses (ICD-10 codes), procedures, and billing. Patients can have multiple encounters, each with multiple diagnoses and procedures.",
+      "expected_output": "The agent should design a model handling the complex many-to-many relationships in healthcare data, with BigQuery-specific optimizations, proper grain definition for each fact table, and careful handling of nested/repeated fields.",
+      "assertions": [
+        "Checks for .claude/data-stack-context.md",
+        "Identifies the many-to-many relationships (encounters to diagnoses, encounters to procedures)",
+        "Defines clear grain for each fact table (e.g., one row per encounter-diagnosis pair for a bridge table)",
+        "Uses BigQuery-specific config: partition_by on encounter date, cluster_by on patient_key",
+        "Considers BigQuery nested/repeated fields (STRUCT/ARRAY) as an alternative to bridge tables",
+        "Generates surrogate keys using dbt_utils.generate_surrogate_key",
+        "Produces schema.yml with column-level documentation",
+        "Includes a fanout check query to validate join cardinality",
+        "Does not use SELECT DISTINCT to mask join issues"
+      ],
+      "files": ["SKILL.md"]
+    },
+    {
+      "id": 5,
+      "prompt": "ugh our data is a mess. we have like 5 different tables that all have customer info and nobody knows which one is the source of truth. can you help me figure out how to structure this properly?",
+      "expected_output": "The agent should help consolidate customer data into a proper dimensional model with a single dim_customers as the source of truth, addressing SCD handling and deduplication.",
+      "assertions": [
+        "Checks for .claude/data-stack-context.md",
+        "Asks clarifying questions about the 5 customer tables and their sources",
+        "Recommends a single dim_customers as the authoritative dimension",
+        "Addresses surrogate key strategy for merging multiple sources",
+        "Discusses SCD Type 1 vs Type 2 for tracking customer attribute changes",
+        "Warns about natural key drift across source systems",
+        "Suggests staging models for each source before consolidating",
+        "Generates schema.yml with uniqueness and not_null tests on the surrogate key"
+      ],
+      "files": ["SKILL.md"]
+    },
+    {
+      "id": 6,
+      "prompt": "I need to set up slowly changing dimensions for our product catalog. Products change prices and categories frequently and we need to track the historical values for accurate revenue reporting.",
+      "expected_output": "The agent should recognize this as primarily a slowly-changing-dimensions skill concern and defer to that skill, while briefly acknowledging the dimensional modeling context.",
+      "assertions": [
+        "Checks for .claude/data-stack-context.md",
+        "Recognizes that SCD implementation is the primary concern, not general data modeling",
+        "Defers to or references the slowly-changing-dimensions skill for detailed SCD implementation",
+        "Does NOT generate full SCD snapshot configuration — that belongs to the SCD skill",
+        "May briefly explain how SCD Type 2 fits into the dimensional model architecture",
+        "Does not overstep into snapshot configuration or dbt snapshot strategy details",
+        "Acknowledges the relationship between dim tables and SCD but keeps scope to modeling decisions"
+      ],
+      "files": ["SKILL.md"]
+    }
+  ]
+}

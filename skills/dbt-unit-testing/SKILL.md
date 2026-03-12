@@ -1,6 +1,6 @@
 ---
 name: dbt-unit-testing
-description: "Write dbt unit tests (dbt 1.8+) to validate SQL transformation logic with mocked inputs and expected outputs. Use when testing complex business logic in isolation, building test-driven transformations, or catching regressions in model SQL. Triggers: 'unit test', 'dbt unit test', 'test SQL logic', 'mock data', 'test transformation', 'unit testing dbt', 'test business logic'."
+description: "Write dbt unit tests (dbt 1.8+) to validate SQL transformation logic with mocked inputs and expected outputs. Use when testing complex business logic in isolation, building test-driven transformations, catching regressions in model SQL, or when you need to prove a CASE WHEN or window function works correctly before deploying. Fires for 'how do I unit test a dbt model?', 'I want to test my SQL logic without running against real data,' or 'this calculation is wrong and I need a test to prove the fix.' Covers given/expect syntax, mocking refs and sources, and testing edge cases. Use this whenever unit testing, mocking data, or testing transformation logic in dbt comes up. For schema-level tests, see data-quality-testing. For contracts, see data-contracts. For Jinja macro testing, see advanced-jinja-patterns."
 triggers:
   - "unit test"
   - "dbt unit test"
@@ -8,6 +8,15 @@ triggers:
   - "mock data"
   - "test transformation"
   - "unit testing dbt"
+  - "test business logic"
+  - "test my model logic"
+  - "mock inputs and expected outputs"
+  - "test-driven dbt"
+  - "given expect test"
+  - "test a CASE WHEN"
+  - "regression test for model"
+  - "test without real data"
+  - "validate transformation logic"
 reads_first:
   - data-stack-context
   - data-quality-testing

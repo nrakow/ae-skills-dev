@@ -1,6 +1,6 @@
 ---
 name: sql-style-guide
-description: "Establish and enforce SQL formatting standards, naming conventions, and linting rules for analytics engineering. Use when setting up a new project, onboarding contributors, or enforcing consistency across models. Triggers: 'sql style', 'code style', 'sql formatting', 'sqlfluff', 'linting', 'naming conventions', 'sql standards'."
+description: "Establish and enforce SQL formatting standards, naming conventions, and linting rules so every model in the project looks consistent. Use when setting up a new project, onboarding contributors, PRs are full of style nits, or someone says 'our SQL is a mess'. Also fires for 'set up SQLFluff', 'configure a linter', 'naming conventions for models', 'inconsistent SQL formatting', 'tabs vs spaces SQL', or 'everyone writes SQL differently'. Use this whenever you need SQL coding standards, a linter config, or formatting consistency. For project setup, see dbt-project-setup. For data modeling patterns, see data-modeling."
 triggers:
   - "sql style"
   - "code style"
@@ -8,6 +8,13 @@ triggers:
   - "sqlfluff"
   - "linting"
   - "naming conventions"
+  - "our SQL is a mess"
+  - "inconsistent SQL formatting"
+  - "set up a linter"
+  - "everyone writes SQL differently"
+  - "sql standards"
+  - "tabs vs spaces SQL"
+  - "configure sqlfluff"
 reads_first:
   - data-stack-context
 cli_tools: []

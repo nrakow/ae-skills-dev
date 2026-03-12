@@ -1,12 +1,22 @@
 ---
 name: data-lineage
-description: "Trace and document data lineage across sources, transformations, and reports using dbt's DAG and exposure definitions. Use when investigating data incidents and need to find upstream root causes, performing impact analysis before refactoring a model, documenting column-level lineage, or setting up cross-system lineage tooling. Produces dbt exposure YAML, impact analysis CLI commands, and lineage documentation."
+description: "Trace and visualize data lineage from source to dashboard using dbt's DAG and exposure definitions. Use when you need to know where a column comes from, when you're about to change a model and want to see what breaks, when investigating an incident and tracing upstream, or when someone asks 'what feeds this dashboard?' Fires for 'I'm scared to change this model,' 'I have no idea where this number comes from,' or 'can I safely delete this table?' Covers column-level lineage, exposure definitions, and impact analysis. Use this whenever lineage, impact analysis, dependencies, or 'what depends on this' comes up. For catalog and docs, see data-catalog. For safe model retirement, see model-deprecation. For contracts, see data-contracts."
 triggers:
   - "trace where this data comes from"
-  - "run an impact analysis before changing a model"
+  - "run an impact analysis"
   - "set up data lineage"
   - "show me what depends on this model"
   - "document column lineage"
+  - "what feeds this dashboard"
+  - "where does this column come from"
+  - "if I change this model what breaks"
+  - "upstream dependencies"
+  - "downstream impact"
+  - "dbt exposures"
+  - "DAG visualization"
+  - "trace data flow"
+  - "which sources feed this mart"
+  - "lineage documentation"
 reads_first:
   - data-stack-context
 cli_tools: []

@@ -1,6 +1,6 @@
 ---
 name: marts-design
-description: "Design and build dbt mart models including fact tables, dimension tables, and star/snowflake schemas. Use when building a new reporting domain, designing a fact table for a business process, or creating dimension tables for reporting. Triggers: 'design a mart', 'fact table', 'dimension table', 'build a mart', 'star schema', 'reporting model', 'fct_ model', 'dim_ model'."
+description: "Design and build the dbt mart layer -- fact tables, dimension tables, star schemas, and business-ready reporting models. Use when stakeholders need a new report, you are modeling a business process, designing a data mart for a domain like finance or marketing, or your BI tool needs clean tables to query. Also fires for 'I need a reporting table', 'how should I model orders', 'what grain should my fact table be', 'build a star schema', or 'analysts need a clean table'. Use this whenever you need to create business-facing dbt models. For the upstream staging layer, see staging-layer. For defining metrics on top of marts, see metrics-layer. For full end-to-end mart creation, see new-mart-build. For entity-relationship modeling, see data-modeling."
 triggers:
   - "design a mart"
   - "fact table"
@@ -9,6 +9,14 @@ triggers:
   - "star schema"
   - "fct_ model"
   - "dim_ model"
+  - "reporting model"
+  - "I need a reporting table"
+  - "how should I model orders"
+  - "what grain should this be"
+  - "snowflake schema"
+  - "business-ready model"
+  - "analysts need a clean table"
+  - "new data mart"
 reads_first:
   - data-stack-context
   - data-modeling

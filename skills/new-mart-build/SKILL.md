@@ -1,6 +1,6 @@
 ---
 name: new-mart-build
-description: "End-to-end workflow for building a new mart (fact or dimension table) from existing staging models through testing, metrics definition, and BI exposure. Sequences: data-modeling, marts-design, data-quality-testing, dbt-unit-testing, metrics-layer, dashboard-design. Triggers: 'build a new mart', 'create a fact table', 'new dimension table', 'new reporting model', 'build fct_', 'build dim_', 'new business domain model'."
+description: "End-to-end workflow for building a new mart from scratch -- modeling, SQL, tests, metrics, and BI exposure in one guided sequence. Use when the business needs a new reporting table, someone says 'we need a dashboard for X', you are starting a new analytics domain, or you want a step-by-step walkthrough instead of figuring it out piecemeal. Also fires for 'I need to build a new report', 'walk me through creating a mart', 'how do I go from staging to a dashboard', 'the VP wants a new report by Friday', or 'new analytics use case'. Use this whenever you want the full guided workflow, not just design advice. For mart design patterns only, see marts-design. For upstream staging, see staging-layer. For testing, see data-quality-testing. For modeling concepts, see data-modeling."
 triggers:
   - "build a new mart"
   - "create a fact table"
@@ -9,6 +9,14 @@ triggers:
   - "build fct_"
   - "build dim_"
   - "new business domain"
+  - "I need to build a new report"
+  - "walk me through creating a mart"
+  - "new analytics use case"
+  - "we need a dashboard for"
+  - "staging to dashboard"
+  - "end to end mart"
+  - "the VP wants a new report"
+  - "step by step mart"
 reads_first:
   - data-stack-context
   - staging-layer

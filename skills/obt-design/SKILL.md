@@ -1,6 +1,6 @@
 ---
 name: obt-design
-description: "Design and build One Big Table (OBT) models — wide, pre-joined, denormalized datasets that eliminate BI-layer joins for self-service analytics. Use when building executive dashboards, replacing ad-hoc extracts, supporting non-technical users, or reducing Tableau/Metabase/Power BI join complexity. Triggers: 'one big table', 'OBT', 'wide table', 'flatten for BI', 'denormalized mart', 'self-service dataset', 'dashboard table', 'pre-joined'."
+description: "Design and build One Big Table (OBT) models -- wide, pre-joined, denormalized datasets that eliminate BI-layer joins so business users never have to think about joins. Use when building executive dashboards, replacing messy ad-hoc extracts, Tableau or Metabase is too slow because of too many joins, or non-technical users keep asking for 'one table with everything'. Also fires for 'flatten everything into one table', 'denormalize for BI', 'too many joins in my dashboard', 'pre-join everything', or 'wide table for reporting'. Use this whenever you need a single wide table optimized for BI consumption. For star schema design, see marts-design. For entity modeling, see data-modeling. For performance tuning the OBT, see warehouse-optimization."
 triggers:
   - "one big table"
   - "OBT"
@@ -11,6 +11,10 @@ triggers:
   - "dashboard table"
   - "pre-joined"
   - "executive reporting table"
+  - "too many joins in my dashboard"
+  - "one table with everything"
+  - "flatten everything"
+  - "denormalize for reporting"
 reads_first:
   - data-stack-context
   - data-modeling

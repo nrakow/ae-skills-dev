@@ -1,6 +1,6 @@
 ---
 name: pipeline-design
-description: "Design end-to-end data pipeline architecture including orchestration patterns, dependency management, and failure handling. Use when planning a new data pipeline, choosing between orchestration tools, or redesigning an existing pipeline for reliability. Triggers: 'pipeline design', 'data pipeline', 'orchestration design', 'DAG design', 'pipeline architecture', 'airflow DAG', 'dagster asset', 'pipeline reliability'."
+description: "Design end-to-end data pipeline architecture including orchestration, dependency management, scheduling, retries, and failure handling. Use when planning a new pipeline, choosing between Airflow vs Dagster vs Prefect, redesigning a brittle pipeline that keeps failing, or someone says 'our pipeline broke again'. Also fires for 'DAG design', 'orchestration setup', 'pipeline keeps failing', 'how should I schedule dbt', 'Airflow DAG for dbt', or 'my pipeline is unreliable'. Use this whenever you need to design, architect, or fix a data pipeline end to end. For ingestion tooling, see ingestion-strategy. For CI/CD, see dbt-ci-cd. For performance, see warehouse-optimization."
 triggers:
   - "pipeline design"
   - "data pipeline"
@@ -8,6 +8,14 @@ triggers:
   - "DAG design"
   - "pipeline architecture"
   - "pipeline reliability"
+  - "our pipeline broke again"
+  - "Airflow DAG"
+  - "Dagster asset"
+  - "Prefect flow"
+  - "how should I schedule dbt"
+  - "pipeline keeps failing"
+  - "orchestration setup"
+  - "pipeline is unreliable"
 reads_first:
   - data-stack-context
   - ingestion-strategy

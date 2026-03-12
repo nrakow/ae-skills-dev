@@ -1,6 +1,6 @@
 ---
 name: new-source-onboarding
-description: "End-to-end workflow for onboarding a new data source from ingestion configuration through staging, testing, documentation, and lineage registration. Sequences: ingestion-strategy, staging-layer, data-quality-testing, data-catalog, data-lineage. Triggers: 'add a new source', 'new data source', 'onboard a connector', 'new connector', 'add Fivetran connector', 'add Airbyte source', 'ingest new data'."
+description: "End-to-end workflow for onboarding a new data source from ingestion through staging, testing, documentation, and lineage. Sequences ingestion-strategy, staging-layer, data-quality-testing, data-catalog, and data-lineage into one guided flow. Use when adding a brand new source to your warehouse, plugging in a new SaaS connector, or someone says 'we just signed up for Stripe and need the data'. Also fires for 'add a new source', 'hook up a new database', 'we got a new vendor', 'onboard a new API', or 'new Fivetran connector'. Use this whenever you need the full source-to-staging walkthrough. For staging models only, see staging-layer. For ingestion tool selection, see ingestion-strategy. For testing, see data-quality-testing."
 triggers:
   - "add a new source"
   - "new data source"
@@ -9,6 +9,12 @@ triggers:
   - "add Fivetran connector"
   - "add Airbyte source"
   - "ingest new data"
+  - "hook up a new database"
+  - "we got a new vendor"
+  - "onboard a new API"
+  - "new SaaS data source"
+  - "bring in data from"
+  - "connect a new source"
 reads_first:
   - data-stack-context
 cli_tools:

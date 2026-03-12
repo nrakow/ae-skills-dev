@@ -1,6 +1,6 @@
 ---
 name: data-incident-response
-description: "Structured workflow for investigating and resolving data quality incidents, metric anomalies, and pipeline failures. Sequences: data-observability-audit, anomaly-detection, data-lineage, data-quality-testing. Triggers: 'data incident', 'pipeline is broken', 'data quality alert', 'metric is wrong', 'data is late', 'dashboard is wrong', 'investigate data issue', 'data outage'."
+description: "Investigate and resolve data incidents -- from 'the dashboard is wrong' to full pipeline outages. Use when a stakeholder reports bad numbers, when an alert fires, when data is late or missing, when a metric looks off, or when you just know something is broken but can't find where. Fires for 'the CEO says revenue is zero,' 'why is everything null today,' or 'help, the pipeline blew up.' Follows structured triage: scope blast radius, trace lineage to root cause, fix, and add a postmortem test. Use this whenever something is wrong with the data and you need to figure out what happened -- even vague complaints like 'the data feels off.' For proactive monitoring, see anomaly-detection. For observability gaps, see data-observability-audit. For adding tests after, see data-quality-testing."
 triggers:
   - "data incident"
   - "pipeline is broken"
@@ -10,6 +10,13 @@ triggers:
   - "dashboard is wrong"
   - "investigate data issue"
   - "data outage"
+  - "numbers don't look right"
+  - "something is broken"
+  - "stakeholder says data is wrong"
+  - "revenue dropped to zero"
+  - "why is this metric off"
+  - "data is missing"
+  - "help me triage this data issue"
 reads_first:
   - data-stack-context
 cli_tools:

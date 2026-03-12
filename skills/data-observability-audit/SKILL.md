@@ -1,6 +1,6 @@
 ---
 name: data-observability-audit
-description: "Audit and improve data observability coverage across your pipeline including monitoring, alerting, freshness, and test coverage gaps. Use when assessing observability maturity, responding to data incidents, or implementing a monitoring strategy. Triggers: 'observability audit', 'data reliability', 'monitor data', 'data health check', 'monitoring coverage', 'data downtime', 'pipeline reliability'."
+description: "Audit and improve data observability coverage across your pipeline -- monitoring, alerting, freshness checks, and test coverage gaps. Use when you have no idea if your pipeline is healthy, when incidents keep surprising you, when you want to assess observability maturity, or when implementing a monitoring strategy from scratch. Fires for 'we only find out data is broken when a stakeholder complains,' 'how do I know if my pipeline is healthy?', or 'we have zero monitoring.' Use this whenever observability, reliability, data health, or monitoring coverage comes up. For setting up anomaly tests, see anomaly-detection. For incident triage, see data-incident-response. For adding tests, see data-quality-testing."
 triggers:
   - "observability audit"
   - "data reliability"
@@ -8,6 +8,15 @@ triggers:
   - "data health check"
   - "monitoring coverage"
   - "pipeline reliability"
+  - "data downtime"
+  - "we have no monitoring"
+  - "how healthy is our pipeline"
+  - "observability maturity"
+  - "audit our data tests"
+  - "are we monitoring enough"
+  - "data reliability assessment"
+  - "freshness coverage gaps"
+  - "test coverage audit"
 reads_first:
   - data-stack-context
   - anomaly-detection

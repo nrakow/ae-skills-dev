@@ -1,6 +1,6 @@
 ---
 name: anomaly-detection
-description: "Set up automated anomaly detection for data pipelines using Elementary or custom dbt tests. Use when implementing proactive data monitoring, detecting volume spikes or drops, catching distribution shifts, or alerting on freshness violations. Triggers: 'anomaly detection', 'detect anomalies', 'data spikes', 'outliers', 'elementary anomalies', 'volume monitoring', 'data monitoring', 'alert on data changes'."
+description: "Set up automated anomaly detection for data pipelines using Elementary, Monte Carlo, or custom statistical tests. Use when row counts spike or drop unexpectedly, when a column's null rate changes overnight, when data arrives late and nobody notices, or when stakeholders find bad data before you do. Also catches distribution shifts, schema drift, and freshness failures. Fires for 'why did this metric jump 10x?' or 'we keep getting surprised by bad data.' Use this whenever you want proactive alerts instead of reactive firefighting, or when anything about the data 'looks off.' For broader test coverage, see data-quality-testing. For incident triage, see data-incident-response. For full observability audit, see data-observability-audit."
 triggers:
   - "anomaly detection"
   - "detect anomalies"
@@ -8,7 +8,15 @@ triggers:
   - "volume monitoring"
   - "data monitoring"
   - "elementary anomalies"
-  - "alert on data"
+  - "alert on data changes"
+  - "row count dropped"
+  - "data looks wrong today"
+  - "null rate changed"
+  - "catch data issues before stakeholders do"
+  - "proactive data monitoring"
+  - "distribution shifted"
+  - "freshness alert"
+  - "something changed in the data"
 reads_first:
   - data-stack-context
   - data-quality-testing

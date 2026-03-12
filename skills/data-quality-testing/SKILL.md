@@ -1,6 +1,6 @@
 ---
 name: data-quality-testing
-description: "Write comprehensive dbt tests including schema tests, custom SQL tests, unit tests, and Elementary anomaly tests to ensure data quality. Use when adding test coverage to existing models, auditing test gaps, or setting up a testing strategy from scratch. Triggers: 'add tests', 'write tests', 'test coverage', 'data quality', 'dbt tests', 'schema tests', 'test my models', 'data testing strategy'."
+description: "Write comprehensive dbt tests -- schema tests, custom SQL tests, singular tests, and Elementary anomaly tests -- to ensure data quality. Use when adding test coverage to existing models, auditing test gaps, setting up a testing strategy from scratch, or when bad data keeps reaching dashboards. Fires for 'we have no tests,' 'how do I test this model?', 'bad data keeps showing up,' or 'our test coverage is embarrassing.' Covers not-null, unique, relationships, accepted_values, custom SQL assertions, and dbt_utils tests. Use this whenever data quality, testing, test coverage, or data validation comes up. For contract enforcement, see data-contracts. For anomaly detection, see anomaly-detection. For observability audit, see data-observability-audit."
 triggers:
   - "add tests"
   - "write tests"
@@ -8,6 +8,15 @@ triggers:
   - "data quality"
   - "dbt tests"
   - "test my models"
+  - "schema tests"
+  - "data testing strategy"
+  - "we have no tests"
+  - "bad data in dashboard"
+  - "how do I test this model"
+  - "custom SQL test"
+  - "singular test"
+  - "test for nulls"
+  - "data validation"
 reads_first:
   - data-stack-context
 cli_tools:

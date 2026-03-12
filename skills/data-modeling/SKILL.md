@@ -1,12 +1,22 @@
 ---
 name: data-modeling
-description: "Design dimensional data models, entity-relationship diagrams, and dbt model architecture. Use when planning a new data domain, designing fact and dimension tables, or choosing between modeling approaches. Triggers: 'model my data', 'design data model', 'dimensional modeling', 'entity model', 'star schema design', 'data architecture'."
+description: "Design dimensional data models, fact and dimension tables, and dbt model architecture. Use when planning a new data domain, when you're not sure how to structure tables, when choosing between star schema vs wide table vs Data Vault, or when a new source needs proper modeling. Fires for 'I have raw data and don't know where to start,' 'should I normalize or denormalize?', or 'my tables are a mess and queries are slow.' Covers grain decisions, surrogate keys, conformed dimensions, and slowly changing attributes. Use this whenever someone needs to design, restructure, or rethink how data is organized in the warehouse. For staging patterns, see staging-layer. For mart layer, see marts-design. For SCD handling, see slowly-changing-dimensions."
 triggers:
   - "model my data"
   - "design data model"
   - "dimensional modeling"
   - "data architecture"
   - "entity model"
+  - "star schema"
+  - "fact and dimension tables"
+  - "how should I structure this data"
+  - "what should the grain be"
+  - "wide table or star schema"
+  - "Data Vault"
+  - "surrogate keys"
+  - "new data domain"
+  - "normalize or denormalize"
+  - "design tables for reporting"
 reads_first:
   - data-stack-context
 cli_tools:

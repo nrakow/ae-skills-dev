@@ -1,13 +1,22 @@
 ---
 name: data-contracts
-description: "Define and enforce data contracts between producers and consumers to prevent breaking changes and guarantee schema stability. Use when formalizing producer-consumer agreements, implementing schema constraints, or protecting downstream dependencies from upstream changes. Triggers: 'data contract', 'schema contract', 'data SLA', 'producer consumer', 'enforce schema', 'breaking changes', 'contract testing'."
+description: "Define and enforce data contracts between producers and consumers to prevent breaking changes. Use when upstream changes keep breaking your models, when a producer team ships changes without telling you, when you need schema guarantees for critical tables, or when column types silently change and everything downstream breaks. Fires for 'upstream broke my pipeline again,' 'who changed this schema?', or 'we need an interface between teams.' Covers dbt model contracts, SLA definitions, CI contract testing, and cross-team coordination. Use this whenever schema stability, breaking changes, or producer-consumer ownership comes up. For test coverage, see data-quality-testing. For metadata docs, see data-catalog. For staging layer design, see staging-layer."
 triggers:
   - "data contract"
   - "schema contract"
   - "data SLA"
-  - "producer consumer"
+  - "producer consumer agreement"
   - "enforce schema"
-  - "breaking changes"
+  - "breaking changes keep happening"
+  - "contract testing"
+  - "upstream broke my model"
+  - "protect downstream from schema changes"
+  - "enforce column types"
+  - "dbt contract enforced"
+  - "schema stability"
+  - "who owns this data"
+  - "prevent breaking changes"
+  - "column type mismatch"
 reads_first:
   - data-stack-context
   - data-quality-testing

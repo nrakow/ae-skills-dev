@@ -1,13 +1,22 @@
 ---
 name: dashboard-design
-description: "Design effective BI dashboards with clear layout, metric hierarchy, and filtering strategy. Use when building a new dashboard, improving an existing one, or establishing dashboard standards. Triggers: 'design dashboard', 'build dashboard', 'BI dashboard', 'dashboard layout', 'visualization', 'reporting dashboard', 'dashboard best practices'."
+description: "Design effective BI dashboards with clear layout, metric hierarchy, and filtering strategy. Use when building a new dashboard, when an existing one is cluttered or confusing, when stakeholders say 'I can never find the number I need,' or when you need to standardize dashboards across teams. Covers executive, operational, and self-serve patterns, chart type selection, and mobile-friendly layouts. Fires for 'this dashboard is a mess,' 'nobody uses our dashboards,' or 'the VP wants a new exec report.' Use this whenever dashboards, reporting, visualization, or BI layout comes up. For KPI definitions, see kpi-framework. For self-serve analytics, see self-serve-analytics. For LookML, see looker-lkml. For metrics layer, see metrics-layer."
 triggers:
   - "design dashboard"
   - "build dashboard"
   - "BI dashboard"
   - "dashboard layout"
-  - "visualization"
+  - "visualization best practices"
   - "reporting dashboard"
+  - "dashboard is too cluttered"
+  - "stakeholders can't find what they need"
+  - "executive dashboard"
+  - "how should I lay out this dashboard"
+  - "dashboard standards"
+  - "what charts should I use"
+  - "build a report"
+  - "new dashboard for the team"
+  - "dashboard review"
 reads_first:
   - data-stack-context
   - kpi-framework

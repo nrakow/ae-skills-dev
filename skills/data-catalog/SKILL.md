@@ -1,12 +1,22 @@
 ---
 name: data-catalog
-description: "Implement and maintain a data catalog with metadata, documentation, and discovery tooling. Use when setting up dbt docs or an external catalog tool, improving documentation coverage across models, building a data dictionary for stakeholders, or integrating dbt artifacts with OpenMetadata or Atlan. Produces dbt YAML documentation, an overview page, and catalog connector configuration."
+description: "Implement and maintain a data catalog for metadata, documentation, and data discovery. Use when nobody can find the right table, when new analysts keep asking 'where does this data live?', when documentation is missing or stale, when dbt docs are empty, or when compliance needs a complete data dictionary. Fires for 'our docs are useless,' 'I don't know what half these tables do,' or 'onboarding new analysts takes forever because nothing is documented.' Use this whenever documentation, discovery, catalog, or data dictionary comes up. For lineage tracing, see data-lineage. For schema contracts, see data-contracts. For self-serve analytics, see self-serve-analytics."
 triggers:
   - "set up a data catalog"
   - "document my dbt models"
   - "improve data discovery"
   - "generate dbt docs"
   - "build a data dictionary"
+  - "nobody can find the right table"
+  - "where does this data live"
+  - "our documentation is missing"
+  - "catalog integration"
+  - "OpenMetadata setup"
+  - "Atlan connector"
+  - "data dictionary for stakeholders"
+  - "models are undocumented"
+  - "improve dbt docs"
+  - "metadata management"
 reads_first:
   - data-stack-context
 cli_tools: []

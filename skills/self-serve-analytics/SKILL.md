@@ -1,6 +1,6 @@
 ---
 name: self-serve-analytics
-description: "Design and implement a self-serve analytics layer that enables business users to answer questions without engineering help. Use when improving analyst independence, building a semantic layer, or reducing ad hoc request volume. Triggers: 'self-serve', 'self-service analytics', 'empower analysts', 'ad hoc queries', 'business user analytics', 'reduce engineering bottleneck'."
+description: "Design and implement a self-serve analytics layer so business users can answer their own questions without filing a ticket or pinging an engineer. Use when analysts keep asking the same questions, the data team is drowning in ad-hoc requests, stakeholders complain they cannot find data, or you want to reduce the interrupt-driven workload. Also fires for 'too many ad hoc requests', 'analysts can't find anything', 'business users need to self-serve', 'reduce data team bottleneck', or 'empower non-technical users'. Use this whenever you want business users to be more independent with data. For dashboard design, see dashboard-design. For data catalog setup, see data-catalog. For KPI definitions, see kpi-framework. For Looker, see looker-lkml."
 triggers:
   - "self-serve"
   - "self-service analytics"
@@ -8,6 +8,13 @@ triggers:
   - "ad hoc queries"
   - "business user analytics"
   - "reduce engineering bottleneck"
+  - "too many ad hoc requests"
+  - "analysts can't find anything"
+  - "data team is drowning in requests"
+  - "stakeholders can't find data"
+  - "business users need to self-serve"
+  - "reduce data team bottleneck"
+  - "empower non-technical users"
 reads_first:
   - data-stack-context
   - kpi-framework

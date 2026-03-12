@@ -1,6 +1,6 @@
 ---
 name: entity-resolution
-description: "Deduplicate and resolve entity identity across sources. Use when the same customer appears in multiple systems with different IDs, merging user records from CRM and product database, or building a unified customer identity. Triggers: 'entity resolution', 'deduplication', 'identity stitching', 'merge customer records', 'cross-source customer matching', 'fuzzy matching', 'golden record'."
+description: "Deduplicate and resolve entity identity across sources to build a single golden record. Use when the same customer appears in multiple systems with different IDs, when merging CRM and product records, when building a unified customer profile, or when duplicate records inflate metrics. Fires for 'we have duplicates everywhere,' 'same person has three records,' 'how do I match customers across systems?', or 'our user count is inflated by dupes.' Covers deterministic matching, fuzzy matching, blocking keys, identity graphs, and Splink integration. Use this whenever deduplication, identity resolution, record matching, or customer 360 comes up. For data modeling, see data-modeling. For staging cleanup, see staging-layer. For data quality, see data-quality-testing."
 triggers:
   - "entity resolution"
   - "deduplication"
@@ -9,6 +9,14 @@ triggers:
   - "identity graph"
   - "customer 360"
   - "golden record"
+  - "identity stitching"
+  - "fuzzy matching"
+  - "duplicate records"
+  - "same customer different IDs"
+  - "cross-source matching"
+  - "deduplicate users"
+  - "unified customer profile"
+  - "record linkage"
 reads_first:
   - data-stack-context
   - staging-layer

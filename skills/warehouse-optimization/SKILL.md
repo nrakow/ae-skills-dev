@@ -1,6 +1,6 @@
 ---
 name: warehouse-optimization
-description: "Optimize warehouse performance and cost through clustering, partitioning, materialization strategies, and query tuning. Use when queries are slow, compute costs are high, or a model needs to be optimized for production scale. Triggers: 'optimize warehouse', 'query performance', 'slow queries', 'clustering', 'partitioning', 'cost optimization', 'warehouse cost', 'query tuning', 'performance tuning'."
+description: "Optimize warehouse performance and slash compute costs through clustering, partitioning, materialization strategies, and query tuning. Use when your warehouse bill is too high, queries take forever, a model is scanning way more data than it should, or someone says 'why is Snowflake so expensive'. Also fires for 'slow queries', 'our warehouse costs are out of control', 'query takes too long', 'reduce Snowflake spend', 'BigQuery slot usage is high', or 'how do I speed up this query'. Use this whenever performance or cost is the primary concern. For incremental processing to reduce rebuilds, see incremental-models. For pipeline architecture, see pipeline-design. For wide table design, see obt-design."
 triggers:
   - "optimize warehouse"
   - "query performance"
@@ -9,6 +9,13 @@ triggers:
   - "partitioning"
   - "cost optimization"
   - "performance tuning"
+  - "warehouse bill is too high"
+  - "why is Snowflake so expensive"
+  - "reduce warehouse spend"
+  - "query takes too long"
+  - "everything is slow"
+  - "warehouse costs out of control"
+  - "speed up this query"
 reads_first:
   - data-stack-context
 cli_tools:

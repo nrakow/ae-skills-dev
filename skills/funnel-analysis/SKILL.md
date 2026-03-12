@@ -1,12 +1,22 @@
 ---
 name: funnel-analysis
-description: "Build funnel analysis models that measure step-by-step conversion rates and identify where users drop off. Use when tracking conversion through a user flow, calculating drop-off rates between funnel stages, building a reusable funnel macro, or segmenting funnel performance by cohort, channel, or device. Produces dbt fact models, aggregation models, and a reusable Jinja funnel macro."
+description: "Build funnel analysis models that measure step-by-step conversion rates and identify where users drop off. Use when tracking conversion through a user flow, calculating drop-off rates between stages, building a reusable funnel macro, or segmenting funnel performance by cohort, channel, or device. Fires for 'where are users dropping off?', 'our signup conversion is terrible,' 'I need a funnel report,' or 'how many users go from trial to paid?' Covers multi-step funnels, time-bounded conversions, and segment breakdowns. Use this whenever conversion funnels, drop-off analysis, or step-by-step conversion tracking comes up. For retention after conversion, see cohort-analysis. For event stream modeling, see activity-schema. For dashboard visualization, see dashboard-design."
 triggers:
   - "funnel analysis"
   - "conversion funnel"
   - "drop-off analysis"
   - "where are users dropping off"
   - "measure conversion rate between steps"
+  - "signup funnel"
+  - "onboarding funnel"
+  - "purchase funnel"
+  - "conversion rate by step"
+  - "funnel report"
+  - "trial to paid conversion"
+  - "checkout abandonment"
+  - "user flow analysis"
+  - "step-by-step conversion"
+  - "why is conversion so low"
 reads_first:
   - data-stack-context
   - advanced-jinja-patterns

@@ -1,6 +1,6 @@
 ---
 name: dbt-ci-cd
-description: "Set up CI/CD pipelines for dbt projects using GitHub Actions, GitLab CI, or dbt Cloud jobs with slim CI and state comparison. Use when automating dbt deployments, setting up PR checks, or implementing environment promotion. Triggers: 'CI/CD', 'continuous integration', 'GitHub Actions', 'slim CI', 'deployment pipeline', 'dbt deploy', 'automate dbt', 'dbt cloud jobs'."
+description: "Set up CI/CD pipelines for dbt projects using GitHub Actions, GitLab CI, or dbt Cloud jobs with slim CI and state comparison. Use when automating dbt deployments, setting up PR checks, implementing environment promotion, or when merging dbt PRs without automated checks feels risky. Fires for 'we deploy dbt manually,' 'how do I set up CI for dbt?', 'PRs don't run any checks,' or 'we need slim CI.' Covers workflow YAML, state comparison, environment promotion, and dbt Cloud job config. Use this whenever CI/CD, deployment automation, PR checks, or dbt Cloud jobs come up. For project structure, see dbt-project-setup. For test coverage, see data-quality-testing. For pipeline orchestration, see pipeline-design."
 triggers:
   - "CI/CD"
   - "continuous integration"
@@ -9,6 +9,14 @@ triggers:
   - "deployment pipeline"
   - "automate dbt"
   - "dbt cloud jobs"
+  - "set up CI for dbt"
+  - "PR checks for dbt"
+  - "GitLab CI dbt"
+  - "we deploy manually"
+  - "automate dbt deployment"
+  - "state comparison"
+  - "dbt build on PR"
+  - "environment promotion"
 reads_first:
   - data-stack-context
   - dbt-project-setup

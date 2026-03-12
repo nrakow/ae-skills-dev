@@ -1,12 +1,22 @@
 ---
 name: event-modeling
-description: "Model business processes as event streams for temporal analytics, audit trails, and process analysis. Use when designing an event-driven data model, tracking state transitions over time, modeling complex business processes like order lifecycles or subscription changes, or building audit trails. Produces fact event stream models, accumulating snapshot models, and event catalog YAML documentation."
+description: "Model business processes as event streams for temporal analytics, audit trails, and process analysis. Use when designing an event-driven data model, tracking state transitions over time, modeling order lifecycles or subscription changes, or building audit trails. Fires for 'I need to track every status change,' 'how do I model an order lifecycle?', 'we need an audit trail,' or 'I want to know the history of every record.' Covers fact event streams, accumulating snapshots, and event catalog documentation. Use this whenever event streams, state transitions, audit trails, or process modeling comes up. For activity schema pattern, see activity-schema. For conversion funnels, see funnel-analysis. For pipeline orchestration, see pipeline-design."
 triggers:
   - "event modeling"
   - "model state transitions"
   - "order lifecycle events"
   - "event sourcing"
   - "process mining"
+  - "track status changes"
+  - "audit trail"
+  - "event stream design"
+  - "subscription lifecycle"
+  - "state machine model"
+  - "temporal data model"
+  - "history of changes"
+  - "event-driven model"
+  - "capture every state change"
+  - "business process events"
 reads_first:
   - data-stack-context
 cli_tools: []

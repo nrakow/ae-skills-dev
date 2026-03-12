@@ -1,12 +1,22 @@
 ---
 name: activity-schema
-description: "Model event streams using the Activity Schema pattern, producing a single unified activity stream from multiple sources. Use when building behavioral analytics, modeling user journeys over time, or implementing a flexible event-based analytics layer that avoids per-event-type tables. Produces a dbt mart model and companion entity enrichment model."
+description: "Model event streams using the Activity Schema pattern into a single unified activity table. Use when events are scattered across dozens of tables and every behavioral query is a nightmare of joins, when adding a new event type means yet another table, or when product asks 'did users do X before Y?' and the query takes an hour to write. Also fires for 'our event data is a mess' or 'I hate joining all these event tables.' Use this whenever event data feels fragmented, behavioral queries are painful, or someone mentions activity schema. For event stream design, see event-modeling. For conversion tracking, see funnel-analysis. For retention, see cohort-analysis."
 triggers:
   - "build an activity schema"
   - "model event streams as a unified activity table"
   - "set up behavioral analytics"
   - "create a user activity stream"
   - "implement activity schema pattern"
+  - "too many event tables"
+  - "unify all events into one table"
+  - "behavioral analytics"
+  - "user journey model"
+  - "did users do X before Y"
+  - "temporal event queries"
+  - "activity stream"
+  - "Ahmed Elsamadisi pattern"
+  - "single event table"
+  - "event data is a mess"
 reads_first:
   - data-stack-context
 cli_tools: []

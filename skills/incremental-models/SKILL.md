@@ -1,6 +1,6 @@
 ---
 name: incremental-models
-description: "Implement incremental dbt models with appropriate strategies per warehouse. Use when full table refreshes are too slow or expensive, processing event streams, or implementing efficient large-table updates. Triggers: 'incremental model', 'dbt incremental', 'append only', 'upsert', 'merge strategy', 'avoid full refresh', 'large table dbt'."
+description: "Implement incremental dbt models so you stop rebuilding massive tables from scratch every run. Use when your dbt runs take forever, your warehouse bill is out of control, you have event-stream data piling up, or a model is scanning billions of rows it already processed. Also fires when someone says 'my pipeline is slow', 'full refresh takes too long', 'this model costs too much', or 'how do I only process new rows'. Use this whenever a table is large enough that full refreshes feel painful. For performance tuning beyond incremental, see warehouse-optimization. For building the upstream staging models, see staging-layer. For designing the downstream mart, see marts-design."
 triggers:
   - "incremental model"
   - "large table"
@@ -8,6 +8,15 @@ triggers:
   - "append-only"
   - "incremental strategy"
   - "microbatch"
+  - "my dbt run is slow"
+  - "full refresh takes too long"
+  - "avoid full refresh"
+  - "merge strategy"
+  - "upsert"
+  - "only process new rows"
+  - "this model costs too much to run"
+  - "dbt incremental"
+  - "billions of rows"
 reads_first:
   - data-stack-context
   - staging-layer

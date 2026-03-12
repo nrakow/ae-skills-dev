@@ -1,6 +1,6 @@
 ---
 name: staging-layer
-description: "Build dbt staging models (stg_ prefix) that clean and standardize raw source data one-to-one. Use when adding a new source, building the first layer of transformation, or auditing existing staging models. Triggers: 'staging layer', 'staging model', 'stg_ model', 'build staging', 'raw to staging', 'clean source data', 'new source model'."
+description: "Build dbt staging models (stg_ prefix) that clean and standardize raw source data one-to-one. Use when adding a new source, building the first transformation layer, raw column names are ugly, data types need casting, or someone says 'where do I put the initial cleanup logic'. Also fires for 'write a staging model', 'raw to staging', 'clean source data', 'rename raw columns', 'standardize source data', or 'stg_ model template'. Use this whenever you need to create or audit the first dbt layer on top of raw data. For data modeling beyond staging, see data-modeling. For building marts on top of staging, see marts-design. For full source onboarding, see new-source-onboarding."
 triggers:
   - "staging layer"
   - "staging model"
@@ -8,6 +8,13 @@ triggers:
   - "build staging"
   - "raw to staging"
   - "clean source data"
+  - "rename raw columns"
+  - "standardize source data"
+  - "where do I put cleanup logic"
+  - "first transformation layer"
+  - "new source model"
+  - "write a staging model"
+  - "ugly column names"
 reads_first:
   - data-stack-context
 cli_tools:

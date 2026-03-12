@@ -1,12 +1,22 @@
 ---
 name: dbt-project-setup
-description: "Scaffold a production-ready dbt project with folder structure, profiles, packages, and CI/CD configuration. Use when starting a new dbt project or auditing an existing project structure. Triggers: 'set up dbt', 'new dbt project', 'scaffold dbt', 'bootstrap dbt project', 'dbt project structure', 'initialize dbt'."
+description: "Scaffold a production-ready dbt project with folder structure, profiles, packages, and CI/CD configuration. Use when starting a new dbt project from scratch, auditing an existing project's structure, or when your project layout is messy and needs reorganizing. Fires for 'start a new dbt project,' 'our dbt project is disorganized,' 'best practices for dbt folder structure,' or 'how should I set up dbt_project.yml?' Covers project scaffolding, profile config, package selection, naming conventions, and custom schema macros. Use this whenever dbt project setup, structure, or organization comes up. For Jinja patterns, see advanced-jinja-patterns. For data modeling, see data-modeling. For SQL style, see sql-style-guide."
 triggers:
   - "set up dbt"
   - "new dbt project"
   - "scaffold dbt"
   - "bootstrap dbt project"
   - "initialize dbt"
+  - "dbt project structure"
+  - "dbt_project.yml setup"
+  - "organize my dbt project"
+  - "dbt folder structure"
+  - "profiles.yml configuration"
+  - "packages.yml setup"
+  - "dbt best practices project"
+  - "messy dbt project"
+  - "start from scratch dbt"
+  - "custom schema macro"
 reads_first:
   - data-stack-context
 cli_tools: []

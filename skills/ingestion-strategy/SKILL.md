@@ -1,6 +1,6 @@
 ---
 name: ingestion-strategy
-description: "Design and implement a data ingestion strategy for moving data from sources into the warehouse using tools like Fivetran, Airbyte, or custom pipelines. Use when selecting an ingestion tool, setting up a new connector, or evaluating ingestion approaches. Triggers: 'ingest data', 'data ingestion', 'load data', 'Fivetran', 'Airbyte', 'connector setup', 'ELT pipeline', 'data loading', 'source connector'."
+description: "Plan and configure data ingestion -- getting data from external sources into your warehouse via Fivetran, Airbyte, Stitch, custom scripts, or any EL tool. Use when you need to pull data from a SaaS app, database, API, or file into your warehouse, when you are comparing ingestion tools, or when data is not showing up or loading incorrectly. Also fires for 'how do I get data into my warehouse', 'set up a connector', 'my source data is stale', or 'which EL tool should I use'. Use this whenever you need to move raw data from point A to your warehouse. For building staging models on top of ingested data, see staging-layer. For full source onboarding end-to-end, see new-source-onboarding. For pipeline orchestration, see pipeline-design."
 triggers:
   - "ingest data"
   - "data ingestion"
@@ -9,6 +9,14 @@ triggers:
   - "Airbyte"
   - "connector setup"
   - "ELT pipeline"
+  - "how do I get data into my warehouse"
+  - "source connector"
+  - "data loading"
+  - "Stitch"
+  - "which EL tool"
+  - "set up a new connector"
+  - "my source data is stale"
+  - "pull data from API"
 reads_first:
   - data-stack-context
 cli_tools:

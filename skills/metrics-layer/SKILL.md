@@ -1,6 +1,6 @@
 ---
 name: metrics-layer
-description: "Define semantic metrics with dbt Semantic Layer, MetricFlow, or Cube. Use when you need a single source of truth for metric definitions, want metrics available across BI tools, or are standardizing KPI calculations across teams. Triggers: 'metrics layer', 'dbt metrics', 'MetricFlow', 'Cube metrics', 'semantic layer', 'metric definitions', 'single source of truth metrics'."
+description: "Set up a semantic metrics layer using dbt Semantic Layer, MetricFlow, or Cube so every dashboard, API, and analyst gets the exact same number. Use when dashboards show conflicting numbers, you are tired of copy-pasting metric SQL between reports, revenue looks different in Looker vs Tableau, or you want one canonical place to define metrics. Also fires for 'our dashboards disagree', 'why does finance see different revenue', 'single source of truth', 'set up MetricFlow', 'Cube vs MetricFlow', or 'semantic model'. Use this whenever metrics are duplicated, inconsistent, or scattered across BI tools. For deciding what KPIs to track, see kpi-framework. For the mart models metrics sit on, see marts-design. For exposing metrics in Looker, see looker-lkml."
 triggers:
   - "metrics layer"
   - "semantic layer"
@@ -8,6 +8,16 @@ triggers:
   - "MetricFlow"
   - "define metrics"
   - "business metrics dbt"
+  - "Cube metrics"
+  - "single source of truth metrics"
+  - "dashboards disagree"
+  - "semantic model"
+  - "metric definitions in dbt"
+  - "Cube vs MetricFlow"
+  - "metrics across BI tools"
+  - "mf query"
+  - "why does finance see different revenue"
+  - "numbers don't match between dashboards"
 reads_first:
   - data-stack-context
   - marts-design

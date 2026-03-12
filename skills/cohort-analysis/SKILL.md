@@ -1,12 +1,22 @@
 ---
 name: cohort-analysis
-description: "Design and build cohort retention and LTV models for product and revenue analysis. Use when measuring user retention over time, calculating lifetime value by acquisition cohort, building cohort triangle tables, or understanding how behavior varies by when users joined. Produces dbt mart models for retention and cumulative LTV."
+description: "Build cohort retention and LTV models for product and revenue analysis. Use when the CEO asks 'are we retaining users?', when you need a retention triangle or heatmap, when calculating lifetime value by signup month, or when product wants to compare behavior across acquisition cohorts. Covers day-N retention, weekly/monthly cohorts, segmented retention by channel or plan, and revenue cohorts. Fires for 'our churn is terrible but we can't measure it' or 'I need to show the board a retention chart.' Use this whenever retention, churn, LTV, or cohort comparison comes up. For conversion funnels, see funnel-analysis. For event stream modeling, see activity-schema. For KPI definitions, see metrics-layer."
 triggers:
   - "build a cohort analysis"
   - "measure user retention"
   - "calculate LTV by cohort"
   - "create a retention curve"
   - "show me cohort retention"
+  - "are we retaining users"
+  - "retention triangle"
+  - "day N retention"
+  - "lifetime value"
+  - "churn by cohort"
+  - "how do January signups compare to February"
+  - "user retention over time"
+  - "cohort table"
+  - "retention is dropping"
+  - "weekly retention"
 reads_first:
   - data-stack-context
 cli_tools: []

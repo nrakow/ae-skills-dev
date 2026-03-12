@@ -1,12 +1,21 @@
 ---
 name: reverse-etl
-description: "Design and implement reverse ETL pipelines that sync modeled warehouse data into operational tools like Salesforce, HubSpot, Intercom, and ad platforms. Use when syncing warehouse data to a CRM or marketing tool, configuring Census or Hightouch syncs, building a dbt activation layer, computing lead scores or customer health scores, or activating warehouse data for personalized marketing. Produces dbt activation model SQL, companion schema.yml, Census/Hightouch sync configuration, and a governance PR checklist."
+description: "Design and implement reverse ETL pipelines that push modeled warehouse data back into operational tools like Salesforce, HubSpot, Intercom, and ad platforms. Use when sales wants lead scores in their CRM, marketing needs audience segments synced to ad platforms, you are setting up Census or Hightouch, or someone says 'how do I get warehouse data into Salesforce'. Also fires for 'sync data to CRM', 'activation layer', 'push data from warehouse to tools', 'customer health score in HubSpot', or 'lead scoring from the warehouse'. Use this whenever you need to move data from your warehouse into an operational system. For designing the mart models that feed reverse ETL, see marts-design. For pipeline orchestration, see pipeline-design. For data contracts on synced data, see data-contracts."
 triggers:
   - "sync warehouse data to Salesforce"
   - "reverse ETL"
   - "set up Census or Hightouch"
   - "build an activation layer"
   - "lead scoring from the warehouse"
+  - "sync data to CRM"
+  - "push data from warehouse"
+  - "customer health score"
+  - "audience sync to ad platforms"
+  - "get warehouse data into Salesforce"
+  - "HubSpot sync"
+  - "Intercom sync"
+  - "data activation"
+  - "operationalize warehouse data"
 reads_first:
   - data-stack-context
 cli_tools: []

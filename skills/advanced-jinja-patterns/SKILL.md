@@ -1,17 +1,22 @@
 ---
 name: advanced-jinja-patterns
-description: "Write clean, correct, maintainable Jinja in dbt — dynamic SQL generation, loops, set/namespace mutation, macros, adapter dispatch, and safe empty-list guards. Use when generating repetitive SQL, building reusable macros, writing adapter-aware logic, or debugging compile-time vs run-time behavior. Triggers: 'dynamic SQL', 'jinja loop', 'dbt macro', 'adapter dispatch', 'set variable', 'namespace', 'union all loop', 'run_query', 'jinja template'."
+description: "Write clean, correct, maintainable Jinja in dbt -- dynamic SQL generation, loops, macros, adapter dispatch, and compile-time debugging. Use when Jinja won't compile, when you need to DRY up repetitive SQL with loops or macros, when a macro behaves unexpectedly, or when you're stuck on set vs namespace mutation. Also covers run_query, adapter.dispatch, cross-database macros, and 'why does my variable reset inside a for loop?' Use this whenever Jinja, macros, or dynamic SQL comes up in dbt -- even if the user just says 'this SQL is repetitive.' For project structure, see dbt-project-setup. For unit testing macros, see dbt-unit-testing. For UDFs, see warehouse-udf-strategy."
 triggers:
   - "dynamic SQL"
   - "jinja loop"
   - "dbt macro"
   - "adapter dispatch"
-  - "set variable"
+  - "set variable in jinja"
   - "namespace"
   - "union all loop"
   - "run_query"
   - "jinja template"
-  - "compile-time"
+  - "compile-time error"
+  - "my jinja won't compile"
+  - "macro not working"
+  - "write a reusable macro"
+  - "generate SQL dynamically"
+  - "jinja is confusing me"
 reads_first:
   - data-stack-context
   - dbt-project-setup

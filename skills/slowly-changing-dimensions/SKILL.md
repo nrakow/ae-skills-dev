@@ -1,6 +1,6 @@
 ---
 name: slowly-changing-dimensions
-description: "Design and implement SCD Type 1, 2, and 3 patterns in dbt. Use when you need to track historical changes in dimension attributes, implement dbt snapshots, or choose the right SCD type for a business requirement. Triggers: 'SCD', 'slowly changing dimension', 'track historical changes', 'dbt snapshot', 'customer history', 'attribute history'."
+description: "Design and implement SCD Type 1, 2, and 3 patterns in dbt using snapshots. Use when you need to track how customer attributes change over time, see what a record looked like last month, implement dbt snapshots, or someone says 'we lost the old value when it changed'. Also fires for 'track historical changes', 'dbt snapshot', 'customer history', 'what was the status last quarter', 'dimension history', or 'attribute changed and we lost the old one'. Use this whenever you need to preserve historical state of dimension attributes. For data modeling patterns, see data-modeling. For incremental processing, see incremental-models. For upstream staging models, see staging-layer."
 triggers:
   - "SCD"
   - "slowly changing dimension"
@@ -8,6 +8,13 @@ triggers:
   - "type 2 SCD"
   - "dbt snapshot"
   - "track changes"
+  - "customer history"
+  - "attribute history"
+  - "we lost the old value"
+  - "what was the status last quarter"
+  - "dimension history"
+  - "track historical changes"
+  - "preserve old values"
 reads_first:
   - data-stack-context
   - staging-layer
